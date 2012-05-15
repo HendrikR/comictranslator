@@ -1,0 +1,3 @@
+LINKFLAGS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lImlib2 ;
+Main detect : detect.cpp ;
+Main draw : draw.cpp ;
