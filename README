@@ -1,0 +1,5 @@
+Comic-Translator
+
+This tool helps you translate webcomics. It reads a comic page, extracts the position of all speech bubbles and puts the position and size of the bubbles in an XML file. The file can then be filled with the translated texts by the user. A second tool takes the original comic page and the XML file with the text and generates a new, translated version of the comic.
+
+Note: At present, only axis-parallel, elliptical speech bubbles are detected. The speech bubbles may overlap or be connected with each other. The detection process is not perfect, though, some overlapping speech bubbles may be missed and have to be added manually to the XML file.
