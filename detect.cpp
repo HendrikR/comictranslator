@@ -143,7 +143,6 @@ int main( int argc, char** argv )
     Mat src;
     vector<RotatedRect> ellipses;
 
-    // the first command line parameter must be file name of binary (black-n-white) image
     if(argc == 2) {
 	src = imread(argv[1], 0);
 	if (src.data == 0) {
@@ -169,14 +168,17 @@ int main( int argc, char** argv )
     // Und nach achsenparallelen Ellipsen suchen.
     findEllipses(src, dst, ellipses, 0.03);
     
-    int idx = 0;
+    printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+    printf("<comic name=\"%s\" lang=\"de\">\n", argv[1]);
+    printf("<bgcolor r=\"255\" g=\"255\" b=\"255\">\n");
+    printf("<font name=\"FreeSans\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\">\n");
     for(vector<RotatedRect>::iterator e = ellipses.begin() ; e != ellipses.end(); e++ ) {
 	ellipse(dst, *e, Scalar(255,0,0), 2);
-	printf("<ellipse center='(%d,%d)' radii='(%d,%d)' color='(255,255,255)'></ellipse>\n",
+	printf("<ellipse centerx=\"%d\" centery=\"%d\" radiusx=\"%d\" radiusy=\"%d\">\n</ellipse>\n",
 	       cvRound(e->center.x), cvRound(e->center.y),
 	       cvRound(e->size.width/2), cvRound(e->size.height/2));
     }
-    
-    imwrite("ts.png", src);
-    imwrite("td.png", dst);
+    printf("</font>\n");
+    printf("</bgcolor>\n");
+    printf("</comic>");
 }
