@@ -1,5 +1,6 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
+#include <algorithm>
 
 using namespace cv;
 
@@ -137,6 +138,15 @@ void findEllipses(Mat src, Mat dst, vector<RotatedRect> &ellipses, float toleran
     findContours(src, contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
     checkEllipse(dst, contours, ellipses, tolerance, min_size, max_size);
 }
+
+// Sortierfunktion für Ellipsen
+bool smaller_by_coords(const RotatedRect &a, const RotatedRect &b) {
+    if (a.center.y < b.center.y) {
+	return true;
+    } else {
+	return false;
+    }
+}
     
 int main( int argc, char** argv )
 {
@@ -172,11 +182,16 @@ int main( int argc, char** argv )
     printf("<comic name=\"%s\" lang=\"de\">\n", argv[1]);
     printf("<bgcolor r=\"255\" g=\"255\" b=\"255\">\n");
     printf("<font name=\"FreeSans\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\">\n");
-    for(vector<RotatedRect>::iterator e = ellipses.begin() ; e != ellipses.end(); e++ ) {
+    
+    std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
+    vector<RotatedRect>::iterator e = ellipses.begin();
+    for(int i = 0; i < ellipses.size(); i++) {
 	ellipse(dst, *e, Scalar(255,0,0), 2);
-	printf("<ellipse centerx=\"%d\" centery=\"%d\" radiusx=\"%d\" radiusy=\"%d\">\n</ellipse>\n",
+	printf("<ellipse centerx=\"%d\" centery=\"%d\" radiusx=\"%d\" radiusy=\"%d\">Text%02d\n</ellipse>\n",
 	       cvRound(e->center.x), cvRound(e->center.y),
-	       cvRound(e->size.width/2), cvRound(e->size.height/2));
+	       cvRound(e->size.height/2)-1, cvRound(e->size.width/2)-1,
+	       i);
+	++e;
     }
     printf("</font>\n");
     printf("</bgcolor>\n");

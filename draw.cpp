@@ -34,6 +34,8 @@
 
 using std::string;
 
+#define BUFSIZE 4096
+
 // Handling Colors and Fonts
 struct Color {
     int r,g,b,a;
@@ -72,13 +74,26 @@ struct CFont {
     }
 };
 
+struct Bubble {
+    string shape;
+    std::map<string, string> args;
+    string text;
+    
+    Bubble(string _shape, std::map<string, string> _args)
+	: shape(_shape), args(_args), text() {};
+    void appendText(string _text) {
+	text += _text;
+    }
+    void draw();
+};
+
 std::vector<Color> colors;
 std::vector<CFont>  fonts;
 
 // Filename for the translated comic
 string filename_out;
 
-string text;
+Bubble *current_bubble;
 
 int arg_i(std::map<string, string> &args, string name, int _default=0) {
     if (args.find(name) != args.end()) {
@@ -104,24 +119,13 @@ string arg_s(std::map<string, string> &args, string name, string _default="") {
 }
 
 static void XMLCALL xml_start(void *data, const char *el, const char **attr) {
-    int i;
     // Argumente sammeln
     std::map<string, string> args;
-    for (i = 0; attr[i]; i += 2) {
+    for (int i = 0; attr[i]; i += 2) {
 	args[string(attr[i])] = string(attr[i+1]);
     }
-    if (strcmp(el, "ellipse") == 0) {
-	colors.back().use();
-	int centerx = arg_i(args, "centerx"),  centery = arg_i(args, "centery");
-	int radiusx = arg_i(args, "radiusx"),  radiusy = arg_i(args, "radiusy");
-	assert(centerx >= radiusx);
-	assert(centery >= radiusy);
-	assert(radiusx >= 6 && radiusy >= 6);
-	imlib_image_fill_ellipse(centerx, centery, radiusy-4, radiusx-4);
-	fonts.back().use();
-	imlib_text_draw(centerx, centery-6, "bla");
-    } else if (strcmp(el, "rectangle") == 0) {
-	// todo
+    if (strcmp(el, "ellipse") == 0 or strcmp(el, "rectangle") == 0) {
+	current_bubble = new Bubble(el, args);
     } else if (strcmp(el, "font") == 0) {
 	fonts.push_back(CFont(arg_s(args, "name"),
 			      arg_s(args, "size"),
@@ -166,11 +170,22 @@ static void XMLCALL xml_end(void *data, const char *el) {
 	    printf("Writing translated file %s\n", filename_out.c_str());
 	}
 	imlib_free_image();
+    } else if (strcmp(el, "ellipse") == 0 or strcmp(el, "rectangle") == 0) {
+	assert(current_bubble != 0);
+	current_bubble->draw();
+	delete current_bubble;
+	current_bubble = 0;
     }
 }
 
 static void XMLCALL xml_data(void *userData, const XML_Char *s, int len) {
-    text = string(s);
+    if (current_bubble) {
+	// chomp
+	while (s[0] == '\n' && len > 0) { s += 1; len -= 1; }
+	while (s[len-1] == '\n' && len > 0) { len -= 1; }
+	string text = string(s, len);
+	current_bubble->appendText(text);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -196,14 +211,14 @@ int main(int argc, char *argv[]) {
     XML_SetElementHandler(parser, xml_start, xml_end);
     XML_SetCharacterDataHandler(parser, xml_data);
     
-
-    char Buff[50];
+    printf("start parsing.\n");
+    char Buff[BUFSIZE];
     while(!file_in.eof()) {
-	file_in.read(Buff, 4096);
-
+	file_in.read(Buff, BUFSIZE);
+	
 	if (XML_Parse(parser, Buff, strlen(Buff), file_in.eof()?1:0) == XML_STATUS_ERROR) {
-	    fprintf(stderr, "Parse error at line %d: %s\n", XML_GetCurrentLineNumber(parser), XML_ErrorString(XML_GetErrorCode(parser)));
-	    exit(-1);
+	  fprintf(stderr, "Parse error at line %d: %s\n", XML_GetCurrentLineNumber(parser), XML_ErrorString(XML_GetErrorCode(parser)));
+	  exit(-1);
 	}
     }
     file_in.close();
@@ -211,3 +226,42 @@ int main(int argc, char *argv[]) {
     printf("parsed: %d colors, %d fonts\n", colors.size(), fonts.size());
     exit(0);
 }
+
+int ellipseWidth(int a, int b, int y) {
+    // OBdA sei a < b.
+    // Ellipsen-Gleichung b^2x^2 + a^2y^2 = a^2b^2, umgestellt nach x
+    //return sqrt( pow(a,2)*(pow(b,2)-pow(y,2)) / (float)pow(b,2) );
+    // Ellipsen-Gleichung x^2/a^2 + y^2/b^2 = 1, umgestellt nach x
+    return sqrt( (1 - pow(y,2)/(float)pow(b,2))/(float)pow(a,2) );
+}
+
+int drawTextLine(int centerx, int centery, string text, int width) {
+    int rest = 0;
+    imlib_text_draw(centerx, centery-6, text.c_str());
+    return rest;
+}
+
+void Bubble::draw() {
+    if (shape == "ellipse") {
+	colors.back().use();
+	int centerx = arg_i(args, "centerx"),  centery = arg_i(args, "centery");
+	int radiusx = arg_i(args, "radiusx"),  radiusy = arg_i(args, "radiusy");
+	assert(centerx >= radiusx);
+	assert(centery >= radiusy);
+	assert(radiusx >= 6 && radiusy >= 6);
+	imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
+	fonts.back().use();
+	int len      = text.length();
+	int fontsize = fonts.back().size;
+	int height   = centery - radiusy + fontsize/2;
+	/*while(len > 0) {
+	    ellipseWidth(radiusy, radiusx, height);
+	    }*/
+	drawTextLine(centerx-radiusx, centery-radiusy, text, radiusx);
+    } else if (shape == "rectangle") {
+	// todo
+    } else {
+	fprintf(stderr, "Error: unknown bubble shape %s\n", shape.c_str());
+    }
+}
+
