@@ -253,7 +253,6 @@ string drawTextLine(int x0, int y0, string text, int maxwidth) {
     }
     
     imlib_get_text_size(oldprefix.c_str(), &width, &height);
-    std::cout << "drawing text '" << oldprefix << "'\n";
     imlib_text_draw(x0+(maxwidth-width)/2, y0,  oldprefix.c_str());
     //imlib_image_draw_line(x0, y0, x0+maxwidth, y0, 0);
     return text.substr(oldprefix.length());
