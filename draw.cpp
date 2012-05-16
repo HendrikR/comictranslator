@@ -31,6 +31,7 @@
 #include <iostream>
 #include <fstream>
 #include <assert.h>
+#include <math.h>
 
 using std::string;
 
@@ -124,7 +125,7 @@ static void XMLCALL xml_start(void *data, const char *el, const char **attr) {
     for (int i = 0; attr[i]; i += 2) {
 	args[string(attr[i])] = string(attr[i+1]);
     }
-    if (strcmp(el, "ellipse") == 0 or strcmp(el, "rectangle") == 0) {
+    if (strcmp(el, "ellipse") == 0 || strcmp(el, "rectangle") == 0) {
 	current_bubble = new Bubble(el, args);
     } else if (strcmp(el, "font") == 0) {
 	fonts.push_back(CFont(arg_s(args, "name"),
@@ -167,10 +168,10 @@ static void XMLCALL xml_end(void *data, const char *el) {
 	if (err != 0) {
 	    fprintf(stderr, "error saving image %s.\n", filename_out.c_str());
 	} else {
-	    printf("Writing translated file %s\n", filename_out.c_str());
+	    fprintf(stderr, "Writing translated file %s\n", filename_out.c_str());
 	}
 	imlib_free_image();
-    } else if (strcmp(el, "ellipse") == 0 or strcmp(el, "rectangle") == 0) {
+    } else if (strcmp(el, "ellipse") == 0 || strcmp(el, "rectangle") == 0) {
 	assert(current_bubble != 0);
 	current_bubble->draw();
 	delete current_bubble;
@@ -211,7 +212,6 @@ int main(int argc, char *argv[]) {
     XML_SetElementHandler(parser, xml_start, xml_end);
     XML_SetCharacterDataHandler(parser, xml_data);
     
-    printf("start parsing.\n");
     char Buff[BUFSIZE];
     while(!file_in.eof()) {
 	file_in.read(Buff, BUFSIZE);
@@ -223,22 +223,40 @@ int main(int argc, char *argv[]) {
     }
     file_in.close();
     XML_ParserFree(parser);
-    printf("parsed: %d colors, %d fonts\n", colors.size(), fonts.size());
     exit(0);
 }
 
-int ellipseWidth(int a, int b, int y) {
-    // OBdA sei a < b.
+int ellipseWidth(float a, float b, float y) {
+    // OBdA sei b <= a.
+    assert(b <= a);
     // Ellipsen-Gleichung b^2x^2 + a^2y^2 = a^2b^2, umgestellt nach x
-    //return sqrt( pow(a,2)*(pow(b,2)-pow(y,2)) / (float)pow(b,2) );
-    // Ellipsen-Gleichung x^2/a^2 + y^2/b^2 = 1, umgestellt nach x
-    return sqrt( (1 - pow(y,2)/(float)pow(b,2))/(float)pow(a,2) );
+    //return static_cast<int>(round(sqrt(pow(b,2)-pow(a,2))/2 + sqrt( pow(a,2)*(pow(b,2)-pow(y,2)) / pow(b,2) )))*2;
+    // Ellipsen-Gleichung x^2/a^2 - y^2/b^2 = 1, umgestellt nach x
+    return static_cast<int>(round(sqrt((1.0 - (y*y)/(b*b)) * (a*a))*2.0));
 }
 
-int drawTextLine(int centerx, int centery, string text, int width) {
-    int rest = 0;
-    imlib_text_draw(centerx, centery-6, text.c_str());
-    return rest;
+string drawTextLine(int x0, int y0, string text, int maxwidth) {
+    string prefix = "", oldprefix = "";
+    int height, width = 0;
+    while (width < maxwidth && oldprefix != text) {
+	oldprefix = prefix;
+	// Find the next word boundary
+	size_t len = prefix.length();
+	size_t word_idx = text.find_first_of(" \t\n", len);
+	
+	if (word_idx != string::npos) {
+	    prefix = text.substr(0, word_idx+1);
+	} else {
+	    prefix = text;
+	}
+	imlib_get_text_size(prefix.c_str(), &width, &height);
+    }
+    
+    imlib_get_text_size(oldprefix.c_str(), &width, &height);
+    std::cout << "drawing text '" << oldprefix << "'\n";
+    imlib_text_draw(x0+(maxwidth-width)/2, y0,  oldprefix.c_str());
+    //imlib_image_draw_line(x0, y0, x0+maxwidth, y0, 0);
+    return text.substr(oldprefix.length());
 }
 
 void Bubble::draw() {
@@ -252,12 +270,19 @@ void Bubble::draw() {
 	imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
 	fonts.back().use();
 	int len      = text.length();
-	int fontsize = fonts.back().size;
-	int height   = centery - radiusy + fontsize/2;
-	/*while(len > 0) {
-	    ellipseWidth(radiusy, radiusx, height);
-	    }*/
-	drawTextLine(centerx-radiusx, centery-radiusy, text, radiusx);
+	int fontsize = static_cast<int>(round(atof(fonts.back().size.c_str())));
+	int width    = 0;
+	int height   = -radiusy + fontsize/2;
+	string rest  = text;
+	while(rest.length() > 0) {
+	    if (height > radiusy/2 - fontsize) {
+		printf("warning: text does not fit, aborting: %s.\n", text.c_str());
+		break;
+	    }
+	    width = ellipseWidth(radiusx, radiusy, abs(height));
+	    rest = drawTextLine(centerx-width/2, centery+height, rest, width);
+	    height += fontsize + fontsize/4;
+	}
     } else if (shape == "rectangle") {
 	// todo
     } else {
