@@ -1,3 +1,25 @@
+/*****************************************************************
+ * detect.cpp
+ *
+ * Copyright 2012-2014, Hendrik Radke
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the license contained in the
+ * COPYING file.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Detect (most) text bubbles in a comic and construct an XML file
+ * with these bubbles ready to be used with draw.cpp.
+ */
+
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <algorithm>
@@ -23,7 +45,7 @@ float dist(Point a, Point b) {
     return sqrt(pow((a-b).x, 2) + pow((a-b).y, 2));
 }
 
-void convexityDefects( InputArray _points, InputArray _hull, OutputArray _defects ) {
+void myConvexityDefects( InputArray _points, InputArray _hull, OutputArray _defects ) {
     Mat points = _points.getMat();
     int ptnum = points.checkVector(2, CV_32S);
     CV_Assert( ptnum > 3 );
@@ -68,10 +90,10 @@ bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> 
 	vector<Vec4i> hullError;
 	convexHull(*contour, hull);
 	convexHull(*contour, hullIdx);
-	convexityDefects(*contour, hullIdx, hullError);
+	myConvexityDefects(*contour, hullIdx, hullError);
 	double contour_area = fabs(contourArea(*contour));
 	double hull_area = fabs(contourArea(hull));
-	if (hull_area < pow(min_size, 2)) continue;
+	if (hull_area < min_size*min_size) continue;
 	// check if the contour is roughly convex (i.e. a potential ellipse).
 	if (fabs(contour_area - hull_area) < contour_area*tolerance) {
 	    // okay, it's covex enough, we are stupid and pretend it's an ellipse, then.
@@ -80,7 +102,9 @@ bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> 
 		RotatedRect ebox = fitEllipse(*contour);
 		// Nur achsenparallele Ellipsen interessieren uns.
 		// Damit werden ellipsenähnliche Objekte ausgefiltert, die keine Sprechblasen sind.
-		if (fabs(ebox.angle-270) < 5) ellipses.push_back(ebox);
+		if (fabs(ebox.angle-90) < 5 || fabs(ebox.angle-270) < 5) {
+		    ellipses.push_back(ebox);
+		}
 	    }
 	} else { // Shape is quite concave. Subdivide contour and repeat the algorithm.
 	    // subdivide along convex hull points
@@ -175,13 +199,14 @@ int main( int argc, char** argv )
     threshold(src, src, 254, 0, THRESH_TOZERO);
     // Text wegrechnen ("2. Ableitung" des Bildes)
     dilate(src, src, Mat(), Point(-1,-1), 2);
+    //cv::imwrite("debug.png", src);
     // Und nach achsenparallelen Ellipsen suchen.
     findEllipses(src, dst, ellipses, 0.03);
     
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
     printf("<comic name=\"%s\" lang=\"de\">\n", argv[1]);
     printf("<bgcolor r=\"255\" g=\"255\" b=\"255\">\n");
-    printf("<font name=\"FreeSans\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\">\n");
+    printf("<font name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\">\n");
     
     std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
     vector<RotatedRect>::iterator e = ellipses.begin();
