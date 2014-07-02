@@ -23,6 +23,7 @@ float dist(Point a, Point b) {
     return sqrt(pow((a-b).x, 2) + pow((a-b).y, 2));
 }
 
+/*
 void convexityDefects( InputArray _points, InputArray _hull, OutputArray _defects ) {
     Mat points = _points.getMat();
     int ptnum = points.checkVector(2, CV_32S);
@@ -59,7 +60,7 @@ void convexityDefects( InputArray _points, InputArray _hull, OutputArray _defect
         defects.at<Vec4i>(i) = Vec4i(idx0, idx1, idx2, idepth);
     }
 }
-
+*/
 bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> &ellipses, float tolerance, int min_size, int max_size) {
     for(vector<vector<Point> >::iterator contour = contours.begin() ; contour != contours.end(); contour++ ) {
 	// calculate the area of the original contour and its convex hull.
