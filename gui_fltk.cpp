@@ -132,7 +132,7 @@ Fl_Image* load_image(char* name) {
 int main() {
     MyOverlayWindow win(800, 600);
     win.resizable(win);
-    Fl_Image* img = load_image("/home/hendrik/europe_1914_by_hillfighter-d362g5s.jpeg");
+    Fl_Image* img = load_image("oots0123.png");
     if (img == 0) {
 	fprintf(stderr, "Error: cannot load image file\n");
 	exit(1);

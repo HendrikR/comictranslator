@@ -81,7 +81,7 @@ void myConvexityDefects( InputArray _points, InputArray _hull, OutputArray _defe
         defects.at<Vec4i>(i) = Vec4i(idx0, idx1, idx2, idepth);
     }
 }
-*/
+
 bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> &ellipses, float tolerance, int min_size, int max_size) {
     for(vector<vector<Point> >::iterator contour = contours.begin() ; contour != contours.end(); contour++ ) {
 	// calculate the area of the original contour and its convex hull.
