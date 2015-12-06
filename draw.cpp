@@ -33,3 +33,7 @@ int main(int argc, char *argv[]) {
     }
     exit(0);
 }
+
+void Comicfile::draw() {}
+void BubbleEllipse::draw() {}
+void BubbleRectangle::draw() {}
