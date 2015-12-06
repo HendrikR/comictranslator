@@ -1,13 +1,15 @@
-#include "comicfile.h"
+#include "comicfile.hpp"
 #include <expat.h>
 #include <fstream>
+#include <stdint.h>
 
-#define BUFSIZE 4096
+const uint32_t BUFSIZE=0x10000;
 
 // Filename for the translated comic
 string filename_out;
 
-Bubble *current_bubble;
+Comicfile* comic;
+Bubble* current_bubble;
 
 int arg_i(std::map<string, string> &args, string name, int _default) {
     if (args.find(name) != args.end()) {
@@ -39,61 +41,53 @@ static void XMLCALL xml_start(void *data, const char *_elem, const char **attr) 
     for (int i = 0; attr[i]; i += 2) {
 	args[string(attr[i])] = string(attr[i+1]);
     }
-
-    if (elem == "ellipse" || elem == "rectangle") {
-	current_bubble = new Bubble(elem, args, fonts.back(), colors.back());
+    
+    if (elem == "ellipse") {
+	CFont* font = comic->getFont(arg_s(args, "font", "default"));
+	Color* bgcolor = comic->getColor(arg_s(args, "bgcolor", "default"));
+	int centerx = arg_i(args, "centerx"),  centery = arg_i(args, "centery");
+	int radiusx = arg_i(args, "radiusx"),  radiusy = arg_i(args, "radiusy");
+	current_bubble = new BubbleEllipse(centerx, centery, radiusx, radiusy,
+					   font, bgcolor);
+    } else if (elem == "rectangle") {
+	CFont* font = comic->getFont(arg_s(args, "font", "default"));
+	Color* bgcolor = comic->getColor(arg_s(args, "bgcolor", "default"));
+	int x0    = arg_i(args, "x0"),    y0 = arg_i(args, "y0");
+	int width = arg_i(args, "width"), height = arg_i(args, "height");
+	current_bubble = new BubbleRectangle(x0, y0, width, height,
+					     font, bgcolor);
     } else if (elem == "font") {
-	fonts.push_back(CFont(arg_s(args, "name"),
-			      arg_s(args, "size", "8"),
-			      Color(arg_i(args, "colorr", 0),
-				    arg_i(args, "colorg", 0),
-				    arg_i(args, "colorb", 0),
-				    arg_i(args, "colora", 255)
-				  )));
+	comic->add(arg_s(args, "id"),
+		   new CFont(arg_s(args, "name"),
+			     arg_f(args, "size", 8.0),
+			     Color(arg_i(args, "colorr", 0),
+				   arg_i(args, "colorg", 0),
+				   arg_i(args, "colorb", 0),
+				   arg_i(args, "colora", 255)
+				 )));
     } else if (elem == "bgcolor") {
-	colors.push_back(Color(arg_i(args, "r", 255),
-			       arg_i(args, "g", 255),
-			       arg_i(args, "b", 255),
-			       arg_i(args, "a", 255)));
+	comic->add(arg_s(args, "id"),
+		   new Color(arg_i(args, "r", 255),
+			     arg_i(args, "g", 255),
+			     arg_i(args, "b", 255),
+			     arg_i(args, "a", 255)));
     } else if (elem == "comic") {
-	string filename_in = string(arg_s(args, "name"));
-	Imlib_Load_Error errno;
-	Imlib_Image image = imlib_load_image_with_error_return(arg_s(args, "name").c_str(), &errno);
-	if (errno != 0) {
-	    std::cerr<< "Error loading image '"<< arg_s(args, "name") <<"'\n";
-	    exit(-1);
-	}
-	imlib_context_set_image(image);
-	string filename_ext = filename_in.substr(filename_in.rfind('.')+1);
-	imlib_image_set_format(filename_ext.c_str());
-	filename_out = filename_in.substr(0, filename_in.rfind('.')+1) + arg_s(args, "lang", "en") + "." + filename_ext;
-	imlib_context_set_image(image);
+	comic = new Comicfile(arg_s(args, "name"),
+			      arg_s(args, "lang"));
     }
 }
 
 static void XMLCALL xml_end(void *data, const char *_elem) {
     string elem = string(_elem);
     if (elem == "bgcolor") {
-	colors.pop_back();
-    } else if (elem == "font") {
-	fonts.back().free();
-	fonts.pop_back();
+	//colors.pop_back();
     } else if (elem == "comic") {
-	Imlib_Load_Error err;
-	imlib_save_image_with_error_return(filename_out.c_str(), &err);
-	if (err != 0) {
-	    std::cerr<< "error saving image "<< filename_out <<".\n";
-	} else {
-	    std::cerr<< "Writing translated file "<< filename_out <<"\n";
-	}
-	imlib_free_image();
     } else if (elem == "ellipse" || elem == "rectangle") {
 	if (current_bubble == 0) {
 	    std::cerr<< "Error: "<< elem <<" closed without opening tag.\n";
 	    exit(-1);
 	}
-	current_bubble->draw();
-	delete current_bubble;
+	comic->add(current_bubble);
 	current_bubble = 0;
     }
 }
@@ -104,11 +98,11 @@ static void XMLCALL xml_data(void *userData, const XML_Char *s, int len) {
 	while (s[0] == '\n' && len > 0) { s += 1; len -= 1; }
 	while (s[len-1] == '\n' && len > 0) { len -= 1; }
 	string text = string(s, len);
-	current_bubble->appendText(text);
+	current_bubble->setText(text);
     }
 }
 
-void parse_XML(char* filename) {
+Comicfile* parse_XML(char* filename) {
     // Open & check XML file
     std::ifstream file_in(filename);
     if (!file_in.good()) {
@@ -128,7 +122,6 @@ void parse_XML(char* filename) {
     char Buff[BUFSIZE];
     while(!file_in.eof()) {
 	file_in.read(Buff, BUFSIZE);
-	
 	if (XML_Parse(parser, Buff, string(Buff).length(), file_in.eof()?1:0) == XML_STATUS_ERROR) {
 	    std::cerr<< "Parse error at line "
 		     << XML_GetCurrentLineNumber(parser) <<": "
@@ -138,4 +131,38 @@ void parse_XML(char* filename) {
     }
     file_in.close();
     XML_ParserFree(parser);
+    return comic;
+}
+
+
+void Comicfile::writeImage() {
+    // Load the original image
+    Imlib_Load_Error errno;
+    Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &errno);
+    if (errno != 0) {
+	std::cerr<< "Error loading image '"<< imgfile <<"'\n";
+	exit(-1);
+    }
+    imlib_context_set_image(image);
+
+    // Derive filename and format for output file
+    string filename_ext = imgfile.substr(imgfile.rfind('.')+1);
+    imlib_image_set_format(filename_ext.c_str());
+    string filename_out = imgfile.substr(0, imgfile.rfind('.')+1) + language + "." + filename_ext;
+    imlib_context_set_image(image);
+
+    // Draw all the bubbles
+    for (std::vector<Bubble*>::const_iterator b = bubbles.begin();  b != bubbles.end();  b++) {
+	(*b)->writeImage();
+    }
+
+    // Save the new image
+    Imlib_Load_Error err;
+    imlib_save_image_with_error_return(filename_out.c_str(), &err);
+    if (err != 0) {
+	std::cerr<< "error saving image "<< filename_out <<".\n";
+    } else {
+	std::cout<< "Writing translated file "<< filename_out <<"\n";
+    }
+    imlib_free_image();
 }

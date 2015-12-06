@@ -23,6 +23,7 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <algorithm>
+#include <stdint.h>
 
 using namespace cv;
 
@@ -81,8 +82,8 @@ void myConvexityDefects( InputArray _points, InputArray _hull, OutputArray _defe
         defects.at<Vec4i>(i) = Vec4i(idx0, idx1, idx2, idepth);
     }
 }
-*/
-bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> &ellipses, float tolerance, int min_size, int max_size) {
+
+void checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> &ellipses, float tolerance, int min_size, int max_size) {
     for(vector<vector<Point> >::iterator contour = contours.begin() ; contour != contours.end(); contour++ ) {
 	// calculate the area of the original contour and its convex hull.
 	vector<Point> hull;
@@ -111,7 +112,7 @@ bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> 
 	    // Punkt auf der Kontur finden, der (über alle Lapsi) den größten Abstand zur konvexen Hülle hat.
 	    int maxIdx, maxError = 0;
 	    vector<Point> nonHull;
-	    for(int i=0; i<hullError.size(); i++) {
+	    for(uint16_t i=0; i<hullError.size(); i++) {
 		//circle(dst, (*contour)[hullError[i][2]], 3, Scalar(hullError[i][3]/4, 0, 0));
 		if (hullError[i][3] > maxError) {
 		    maxError = hullError[i][3];
@@ -123,7 +124,7 @@ bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> 
 	    // (b) am dichtesten an Punkt *contour[maxIdx] liegt.
 	    if (hullError.size() < 2) continue;
 	    int minIdx, minError = INT_MAX;
-	    for(int i=0; i<hullError.size(); i++) {
+	    for(uint16_t i=0; i<hullError.size(); i++) {
 		if (hullError[i][2] == maxIdx) continue;
 		int d = cvRound(dist((*contour)[hullError[i][2]], (*contour)[maxIdx])*256);
 		if (d < minError) {
@@ -140,7 +141,7 @@ bool checkEllipse(Mat dst, vector<vector<Point> > contours, vector<RotatedRect> 
 		maxIdx   = minIdx;
 		minIdx   = temp;
 	    }
-	    for (int i=0; i<contour->size(); i++) {
+	    for (uint16_t i=0; i<contour->size(); i++) {
 		if (maxIdx < i and i <= minIdx) c2.push_back((*contour)[i]);
 		else                            c1.push_back((*contour)[i]);
 	    }
@@ -205,20 +206,18 @@ int main( int argc, char** argv )
     
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
     printf("<comic name=\"%s\" lang=\"de\">\n", argv[1]);
-    printf("<bgcolor r=\"255\" g=\"255\" b=\"255\">\n");
-    printf("<font name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\">\n");
+    printf("<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n");
+    printf("<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n");
     
     std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
     vector<RotatedRect>::iterator e = ellipses.begin();
-    for(int i = 0; i < ellipses.size(); i++) {
+    for(uint16_t i = 0; i < ellipses.size(); i++) {
 	ellipse(dst, *e, Scalar(255,0,0), 2);
-	printf("<ellipse centerx=\"%d\" centery=\"%d\" radiusx=\"%d\" radiusy=\"%d\">Text%02d\n</ellipse>\n",
+	printf("<ellipse centerx=\"%d\" centery=\"%d\" radiusx=\"%d\" radiusy=\"%d\" font=\"default\" bgcolor=\"default\">Text%02d\n</ellipse>\n",
 	       cvRound(e->center.x), cvRound(e->center.y),
 	       cvRound(e->size.height/2)-1, cvRound(e->size.width/2)-1,
 	       i);
 	++e;
     }
-    printf("</font>\n");
-    printf("</bgcolor>\n");
-    printf("</comic>");
+    printf("</comic>\n");
 }
