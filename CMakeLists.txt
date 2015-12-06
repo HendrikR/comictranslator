@@ -1,4 +1,7 @@
-project (comictranslator) 
+project (comictranslator)
+
+add_compile_options("-g")
+
 ADD_EXECUTABLE( detect
 	detect.cpp
 )
@@ -10,6 +13,7 @@ TARGET_LINK_LIBRARIES( detect
 
 ADD_EXECUTABLE( draw
 	draw.cpp
+	comicfile.o
 )
 TARGET_LINK_LIBRARIES( draw
 	Imlib2

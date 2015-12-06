@@ -1,3 +1,4 @@
-LINKFLAGS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lImlib2 ;
+LINKFLAGS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lImlib2 -lfltk -lfltk_images;
 Main detect : detect.cpp ;
 Main draw : draw.cpp ;
+Main gui: gui_fltk.cpp ;
