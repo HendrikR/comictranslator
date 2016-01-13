@@ -48,7 +48,8 @@ void Bubble::setText(string str) {
 
 BubbleEllipse::BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
 				  CFont *_font, Color *_bgcolor)
-    : centerx(_centerx), centery(_centery), radiusx(_radiusx), radiusy(_radiusy)
+    : centerx(_centerx), centery(_centery), radiusx(_radiusx), radiusy(_radiusy),
+      Bubble(_font, _bgcolor, "")
 {
     if (radiusx > centerx || radiusy > centery)
 	std::cerr<< "Warning: Ellipse Radii ("<< radiusx <<", "<< radiusy <<")"
@@ -57,6 +58,7 @@ BubbleEllipse::BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radi
     if (radiusy < 8) std::cerr<< "Warning: Ellipse y-Radius "<<radiusy<<" too small.\n";
     font = _font;
     bgcolor = _bgcolor;
+    text = "";
 }
 
 int BubbleEllipse::ellipseWidth(float a, float b, float y) {
@@ -111,7 +113,8 @@ void BubbleEllipse::writeImage() {
 
 BubbleRectangle::BubbleRectangle(int _x0, int _y0, int _width, int _height,
 				 CFont *_font, Color *_bgcolor)
-    : x0(_x0), y0(_y0), width(_width), height(_height)
+    : x0(_x0), y0(_y0), width(_width), height(_height),
+      Bubble(_font, _bgcolor, "")
 {
     font = _font;
     bgcolor = _bgcolor;

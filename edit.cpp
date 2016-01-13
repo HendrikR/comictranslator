@@ -31,6 +31,8 @@
 #include <FL/Fl_Input.H>
 #include <FL/fl_draw.H>
 
+Bubble* current = 0;
+
 class MyBox : public Fl_Box {
     uchar* pixbuf;              // image buffer
     Comicfile* comic;
@@ -70,9 +72,13 @@ public:
 	    int cx = Fl::event_x() - x();
 	    int cy = Fl::event_y() - y();
 	    for (std::vector<Bubble*>::const_iterator b = comic->bubbles.begin();  b != comic->bubbles.end();  b++) {
-		if ((*b)->contains(cx,cy)) {
+		Bubble* bubble = *b;
+		if (bubble->contains(cx,cy)) {
 		    //std::cout << (*b)->text << std::endl;
-		    status->value((*b)->text.c_str());
+		    status->value(bubble->text.c_str());
+		    current = bubble;
+		    bubble->draw();
+		    draw();
 		}
 	    }
 	} else if (event == FL_ENTER) return 1;
@@ -147,7 +153,11 @@ void Comicfile::draw() {
 }
 
 void BubbleEllipse::draw() {
-    bgcolor->use();
+    if (this == current) {
+	imlib_context_set_color(128,0,0,128);
+    } else {
+	bgcolor->use();
+    }
     imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
     font->use();
     imlib_text_draw(centerx-13, centery-6, "TEXT");
