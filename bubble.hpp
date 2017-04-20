@@ -17,7 +17,7 @@ public:
     string replace_all(string str, string from, string to);
     string drawTextLine(int x0, int y0, string text, int maxwidth, float rel_height, bool centered=true);
     Bubble(CFont* _font, Color* _bgcolor, string _text)
-	: font(_font), bgcolor(_bgcolor), text(_text)
+	: text(_text), font(_font), bgcolor(_bgcolor)
 	{}
 public:
     virtual void writeImage() = 0;

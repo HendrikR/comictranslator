@@ -137,9 +137,9 @@ Comicfile* parse_XML(char* filename) {
 
 void Comicfile::writeImage() {
     // Load the original image
-    Imlib_Load_Error errno;
-    Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &errno);
-    if (errno != 0) {
+    Imlib_Load_Error err;
+    Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &err);
+    if (err != 0) {
 	std::cerr<< "Error loading image '"<< imgfile <<"'\n";
 	exit(-1);
     }
@@ -157,7 +157,6 @@ void Comicfile::writeImage() {
     }
 
     // Save the new image
-    Imlib_Load_Error err;
     imlib_save_image_with_error_return(filename_out.c_str(), &err);
     if (err != 0) {
 	std::cerr<< "error saving image "<< filename_out <<".\n";

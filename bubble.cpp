@@ -48,8 +48,8 @@ void Bubble::setText(string str) {
 
 BubbleEllipse::BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
 				  CFont *_font, Color *_bgcolor)
-    : centerx(_centerx), centery(_centery), radiusx(_radiusx), radiusy(_radiusy),
-      Bubble(_font, _bgcolor, "")
+    : Bubble(_font, _bgcolor, ""),
+      centerx(_centerx), centery(_centery), radiusx(_radiusx), radiusy(_radiusy)
 {
     if (radiusx > centerx || radiusy > centery)
 	std::cerr<< "Warning: Ellipse Radii ("<< radiusx <<", "<< radiusy <<")"
@@ -86,7 +86,7 @@ void BubbleEllipse::writeImage() {
     
     // Wähle die Höhe der 1. Zeile so, dass das 1. Wort gerade hineinpasst.
     int width, height;
-    int first_idx     = text.find(' ');
+    unsigned first_idx     = text.find(' ');
     string first_word = (first_idx != string::npos) ? text.substr(0,first_idx) : text;
     font->use();
     imlib_get_text_size(first_word.c_str(), &width, &height);
@@ -113,8 +113,8 @@ void BubbleEllipse::writeImage() {
 
 BubbleRectangle::BubbleRectangle(int _x0, int _y0, int _width, int _height,
 				 CFont *_font, Color *_bgcolor)
-    : x0(_x0), y0(_y0), width(_width), height(_height),
-      Bubble(_font, _bgcolor, "")
+    : Bubble(_font, _bgcolor, ""),
+      x0(_x0), y0(_y0), width(_width), height(_height)
 {
     font = _font;
     bgcolor = _bgcolor;

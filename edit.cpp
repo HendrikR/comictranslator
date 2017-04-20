@@ -32,15 +32,24 @@
 #include <FL/fl_draw.H>
 
 Bubble* current = 0;
+Fl_Window* mainWindow;
 
 class MyBox : public Fl_Box {
+public:
+    enum EditMode { DM_POINT, DM_DRAW_RECT, DM_DRAW_CIRC };
     uchar* pixbuf;              // image buffer
     Comicfile* comic;
-    Fl_Input* status;
+    Fl_Input* status_bar;
+    EditMode editmode;
+    int oldx, oldy;
     
     // FLTK DRAW METHOD
     void draw() {
         fl_draw_image(pixbuf, x(), y(), w(), h(), 4, 0);
+	for (unsigned i=0; i<comic->bubbles.size(); i++) {
+	    Bubble* bubble = comic->bubbles[i];
+	    bubble->draw();
+	}
     }
     void load_image() {
 	pixbuf = (uchar*)calloc(imlib_image_get_width()*imlib_image_get_height(), 4);
@@ -64,26 +73,81 @@ public:
 	comic = _comic;
 	load_image();
     }
-    void setStatus(Fl_Input* _status) {
-	status = _status;
+    void setStatusBar(Fl_Input* _status_bar) {
+	status_bar = _status_bar;
+    }
+    Bubble* bubbleAt(int x, int y) {
+	for (std::vector<Bubble*>::const_iterator b = comic->bubbles.begin();
+	     b != comic->bubbles.end();  b++) {
+	    Bubble* bubble = *b;
+	    if (bubble->contains(x,y)) {
+		return bubble;
+	    }
+	}
+	return NULL;
     }
     virtual int handle(int event) {
+	int cx = Fl::event_x() - x();
+	int cy = Fl::event_y() - y();
+
 	if (event == FL_MOVE) {
-	    int cx = Fl::event_x() - x();
-	    int cy = Fl::event_y() - y();
-	    for (std::vector<Bubble*>::const_iterator b = comic->bubbles.begin();  b != comic->bubbles.end();  b++) {
-		Bubble* bubble = *b;
-		if (bubble->contains(cx,cy)) {
-		    //std::cout << (*b)->text << std::endl;
-		    status->value(bubble->text.c_str());
+	    if (editmode == DM_POINT) {
+		Bubble* bubble;
+		if ((bubble = bubbleAt(cx, cy)) != NULL) {
+		    status_bar->value(bubble->text.c_str());
 		    current = bubble;
 		    bubble->draw();
+		    free(pixbuf);
+		    load_image();
 		    draw();
 		}
 	    }
-	} else if (event == FL_ENTER) return 1;
-	else if (event == FL_LEAVE) return 1;
-	else return 0;
+	} else if (event == FL_PUSH) {
+	    if (editmode == DM_POINT) {
+	    } else if (editmode == DM_DRAW_RECT) {
+		oldx = cx;
+		oldy = cy;
+	    } else if (editmode == DM_DRAW_CIRC) {
+		oldx = cx;
+		oldy = cy;
+	    }
+	} else if (event == FL_RELEASE) {
+	    if (editmode == DM_POINT) {
+	    } else if (editmode == DM_DRAW_RECT) {
+		editmode = DM_POINT;
+		mainWindow->cursor(FL_CURSOR_DEFAULT);
+		if (cx < oldx) std::swap(oldx, cx);
+		if (cy < oldy) std::swap(oldy, cy);
+		Bubble* bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
+		comic->add(bubble);
+		bubble->draw();
+	    } else if (editmode == DM_DRAW_CIRC) {
+		editmode = DM_POINT;
+		mainWindow->cursor(FL_CURSOR_DEFAULT);
+		if (cx < oldx) std::swap(oldx, cx);
+		if (cy < oldy) std::swap(oldy, cy);
+		int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
+		Bubble* bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
+		comic->add(bubble);
+		bubble->draw();
+		redraw();
+	    }
+	} else if (event == FL_DRAG) {
+	    fl_color(255, 0, 255);
+	    fl_line_style(FL_DASH, 2, "\x04\x04");
+	    if (editmode == DM_DRAW_RECT) {
+		fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+		redraw();
+	    } else if (editmode == DM_DRAW_CIRC) {
+		//fl_pie(centerx-radiusx, centery-radiusy+30, 2*radiusx, 2*radiusy, 0, 360);
+		fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+		redraw();
+	    }
+	} else if (event == FL_SHORTCUT || FL_HIDE) {
+	    // makes ESC terminate the program, but everything else stops working :-(
+	    return 1;
+	}
+	return 1;
     }
 };
 /*
@@ -100,6 +164,18 @@ const uchar* bgra_to_rgb() {
     return out;
 }
 */
+MyBox* box;
+
+void cb_drawRect(Fl_Widget* widget, void* data) {
+    mainWindow->cursor(FL_CURSOR_CROSS);
+    box->editmode = MyBox::DM_DRAW_RECT;
+}
+
+void cb_drawCirc(Fl_Widget* widget, void* data) {
+    mainWindow->cursor(FL_CURSOR_CROSS);
+    box->editmode = MyBox::DM_DRAW_CIRC;
+}
+
 int main(int argc, char **argv) {
     Comicfile* comic;
     if(argc == 2) {
@@ -111,31 +187,31 @@ int main(int argc, char **argv) {
     comic->draw();
 
     // Create GUI
-    Fl_Window *window = new Fl_Window(imlib_image_get_width(), imlib_image_get_height()+30);
-    MyBox box(0,30);
+    mainWindow = new Fl_Window(imlib_image_get_width(), imlib_image_get_height()+30);
+    box = new MyBox(0,30);
     //Fl_Box box(0,30,imlib_image_get_width(), imlib_image_get_height());
     Fl_Button bRect ( 0,0, 40,30, "rect");
     Fl_Button bCirc (40,0, 40,30, "circ");
-    Fl_Input* status = new Fl_Input(80,0,box.w()-80,30, "");
-    status->deactivate();
-    box.setComic(comic);
-    box.setStatus(status);
+    bRect.callback(cb_drawRect);
+    bCirc.callback(cb_drawCirc);
+    Fl_Input* status_bar = new Fl_Input(80,0,box->w()-80,30, "");
+    status_bar->deactivate();
+    box->setComic(comic);
+    box->setStatusBar(status_bar);
     //const uchar* data = bgra_to_rgb();
-    //Fl_RGB_Image img(data, imlib_image_get_width(), imlib_image_get_height());
-    //box.image(img);
-    window->end();
-    //window->setImage(imlib_image_get_data());
-    window->show(argc, argv);
-    window->redraw();
+    mainWindow->end();
+    //mainWindow->setImage(imlib_image_get_data());
+    mainWindow->show();
+    mainWindow->redraw();
     return Fl::run();
 }
 
 void Comicfile::draw() {
     // Load the original image
-    Imlib_Load_Error errno;
-    Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &errno);
-    if (errno != 0) {
-	std::cerr<< "Error loading image '"<< imgfile <<"'\n";
+    Imlib_Load_Error err;
+    Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &err);
+    if (err != 0) {
+	std::cerr<< "Error loading image '"<< imgfile <<"', error code "<< err <<"\n";
 	exit(-1);
     }
     imlib_context_set_image(image);
@@ -164,9 +240,13 @@ void BubbleEllipse::draw() {
 }
 
 void BubbleRectangle::draw() {
-    bgcolor->use();
+    if (this == current) {
+	imlib_context_set_color(128,0,0,128);
+    } else {
+	bgcolor->use();
+    }
     imlib_image_fill_rectangle(x0, y0, width, height);
     font->use();
-    imlib_text_draw(x0+10, y0+10, "TEXT");
+    imlib_text_draw(x0+0.05*width, y0+0.05*height, "TEXT");
 }
 
