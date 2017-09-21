@@ -41,7 +41,7 @@ static void XMLCALL xml_start(void *data, const char *_elem, const char **attr) 
     for (int i = 0; attr[i]; i += 2) {
 	args[string(attr[i])] = string(attr[i+1]);
     }
-    
+
     if (elem == "ellipse") {
 	CFont* font = comic->getFont(arg_s(args, "font", "default"));
 	Color* bgcolor = comic->getColor(arg_s(args, "bgcolor", "default"));
@@ -118,7 +118,7 @@ Comicfile* parse_XML(char* filename) {
 
     XML_SetElementHandler(parser, xml_start, xml_end);
     XML_SetCharacterDataHandler(parser, xml_data);
-    
+
     char Buff[BUFSIZE];
     while(!file_in.eof()) {
 	file_in.read(Buff, BUFSIZE);
@@ -135,7 +135,7 @@ Comicfile* parse_XML(char* filename) {
 }
 
 
-void Comicfile::writeImage() {
+void Comicfile::writeImage() const {
     // Load the original image
     Imlib_Load_Error err;
     Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &err);
@@ -152,8 +152,8 @@ void Comicfile::writeImage() {
     imlib_context_set_image(image);
 
     // Draw all the bubbles
-    for (std::vector<Bubble*>::const_iterator b = bubbles.begin();  b != bubbles.end();  b++) {
-	(*b)->writeImage();
+    for (const Bubble* b : bubbles) {
+	b->writeImage();
     }
 
     // Save the new image
@@ -164,4 +164,22 @@ void Comicfile::writeImage() {
 	std::cout<< "Writing translated file "<< filename_out <<"\n";
     }
     imlib_free_image();
+}
+
+void Comicfile::writeXML(std::ostream& str) const {
+    str << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+    str << "<comic name=\"" << imgfile << "\" lang=\"de\">\n";
+    str << "<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n";
+    str << "<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
+
+    int text_num = 0;
+    for (const Bubble* b : bubbles) {
+        b->writeXML( str, "text" + std::to_string( text_num++ ) );
+    }
+    str << "</comic>\n";
+
+}
+
+void Comicfile::addFontpath(string path) {
+    CFont::addFontpath(path);
 }

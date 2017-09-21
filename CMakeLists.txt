@@ -1,6 +1,6 @@
 project (comictranslator)
 
-add_compile_options("-g")
+add_compile_options("-g -std=c++11")
 
 ADD_EXECUTABLE( detect
 	detect.cpp

@@ -26,3 +26,6 @@ void CFont::use() {
     imlib_context_set_font(imlib_font);
     color.use();
 }
+void CFont::addFontpath(string path) {
+    imlib_add_path_to_font_path(path.c_str());
+}

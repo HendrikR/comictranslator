@@ -36,13 +36,13 @@ Fl_Window* mainWindow;
 
 class MyBox : public Fl_Box {
 public:
-    enum EditMode { DM_POINT, DM_DRAW_RECT, DM_DRAW_CIRC };
+    enum EditMode { DM_POINT, DM_DRAW_RECT, DM_DRAW_CIRC, DM_DELETE };
     uchar* pixbuf;              // image buffer
     Comicfile* comic;
     Fl_Input* status_bar;
     EditMode editmode;
     int oldx, oldy;
-    
+
     // FLTK DRAW METHOD
     void draw() {
         fl_draw_image(pixbuf, x(), y(), w(), h(), 4, 0);
@@ -92,8 +92,8 @@ public:
 
 	if (event == FL_MOVE) {
 	    if (editmode == DM_POINT) {
-		Bubble* bubble;
-		if ((bubble = bubbleAt(cx, cy)) != NULL) {
+                Bubble* bubble = bubbleAt(cx, cy);
+		if (bubble != NULL) {
 		    status_bar->value(bubble->text.c_str());
 		    current = bubble;
 		    bubble->draw();
@@ -131,10 +131,15 @@ public:
 		comic->add(bubble);
 		bubble->draw();
 		redraw();
-	    }
+	    } else if (editmode == DM_DELETE) {
+		Bubble* bubble = bubbleAt(cx, cy);
+                if (bubble != NULL) {
+                    // TODO: remove bubble from comicfile
+                }
+            }
 	} else if (event == FL_DRAG) {
 	    fl_color(255, 0, 255);
-	    fl_line_style(FL_DASH, 2, "\x04\x04");
+	    fl_line_style(FL_DASH, 1, const_cast<char*>("\x04\x04"));
 	    if (editmode == DM_DRAW_RECT) {
 		fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
 		redraw();
@@ -176,8 +181,22 @@ void cb_drawCirc(Fl_Widget* widget, void* data) {
     box->editmode = MyBox::DM_DRAW_CIRC;
 }
 
+void cb_delShape(Fl_Widget* widget, void* data) {
+    mainWindow->cursor(FL_CURSOR_HAND);
+    box->editmode = MyBox::DM_DELETE;
+}
+
+void cb_setText(Fl_Widget* widget, void* data) {
+    // TODO: get current bubble as data
+}
+
+void cb_save(Fl_Widget* widget, void* data) {
+
+}
+
 int main(int argc, char **argv) {
     Comicfile* comic;
+    comic->addFontpath("./fonts");
     if(argc == 2) {
 	comic = parse_XML(argv[1]);
     } else {
@@ -192,13 +211,27 @@ int main(int argc, char **argv) {
     //Fl_Box box(0,30,imlib_image_get_width(), imlib_image_get_height());
     Fl_Button bRect ( 0,0, 40,30, "rect");
     Fl_Button bCirc (40,0, 40,30, "circ");
-    bRect.callback(cb_drawRect);
-    bCirc.callback(cb_drawCirc);
-    Fl_Input* status_bar = new Fl_Input(80,0,box->w()-80,30, "");
-    status_bar->deactivate();
+    Fl_Button bDel  (80,0, 40,30, "del");
+    Fl_Input* status_bar = new Fl_Input(120,0,box->w()-200,30, "");
+    // TODO: maybe replace this with an "edit" window, where you can set text, size, font, color?
+    Fl_Button bSet  (box->w()-80,0, 40,30, "set");
+    Fl_Button bSave (box->w()-40,0, 40,30, "save");
     box->setComic(comic);
     box->setStatusBar(status_bar);
-    //const uchar* data = bgra_to_rgb();
+
+    // set callbacks
+    bRect.callback(cb_drawRect);
+    bCirc.callback(cb_drawCirc);
+    bDel.callback(cb_delShape);
+    bSet.callback(cb_setText);
+    bSave.callback(cb_save);
+
+    // deactivate un-implemented GUI elements (TODOs)
+    status_bar->deactivate();
+    bDel.deactivate();
+    bSet.deactivate();
+    bSave.deactivate();
+
     mainWindow->end();
     //mainWindow->setImage(imlib_image_get_data());
     mainWindow->show();
@@ -206,7 +239,7 @@ int main(int argc, char **argv) {
     return Fl::run();
 }
 
-void Comicfile::draw() {
+void Comicfile::draw() const {
     // Load the original image
     Imlib_Load_Error err;
     Imlib_Image image = imlib_load_image_with_error_return(imgfile.c_str(), &err);
@@ -228,7 +261,7 @@ void Comicfile::draw() {
     }
 }
 
-void BubbleEllipse::draw() {
+void BubbleEllipse::draw() const {
     if (this == current) {
 	imlib_context_set_color(128,0,0,128);
     } else {
@@ -239,7 +272,7 @@ void BubbleEllipse::draw() {
     imlib_text_draw(centerx-13, centery-6, "TEXT");
 }
 
-void BubbleRectangle::draw() {
+void BubbleRectangle::draw() const {
     if (this == current) {
 	imlib_context_set_color(128,0,0,128);
     } else {

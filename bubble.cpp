@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-string Bubble::replace_all(string str, string from, string to) {
+string Bubble::replace_all(string str, string from, string to) const {
     string::size_type pos = 0;
     while( (pos = str.find(from, pos)) != string::npos) {
 	str.replace(pos, from.size(), to);
@@ -15,7 +15,7 @@ string Bubble::replace_all(string str, string from, string to) {
     return str;
 }
 
-string Bubble::drawTextLine(int x0, int y0, string text, int maxwidth, float rel_height, bool centered) {
+string Bubble::drawTextLine(int x0, int y0, string text, int maxwidth, float rel_height, bool centered) const {
     string prefix = "", oldprefix = "";
     int height, width = 0;
     while (width < maxwidth && oldprefix != text) {
@@ -23,7 +23,7 @@ string Bubble::drawTextLine(int x0, int y0, string text, int maxwidth, float rel
 	// Find the next word boundary
 	size_t len = prefix.length();
 	size_t word_idx = text.find(" ", len+1);
-	
+
 	if (word_idx != string::npos) {
 	    prefix = text.substr(0, word_idx);
 	} else {
@@ -31,7 +31,7 @@ string Bubble::drawTextLine(int x0, int y0, string text, int maxwidth, float rel
 	}
 	imlib_get_text_size(prefix.c_str(), &width, &height);
     }
-    
+
     imlib_get_text_size(oldprefix.c_str(), &width, &height);
     int xpos = x0 + 2;
     if (centered) xpos += (maxwidth-width)/2;
@@ -61,12 +61,12 @@ BubbleEllipse::BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radi
     text = "";
 }
 
-int BubbleEllipse::ellipseWidth(float a, float b, float y) {
+int BubbleEllipse::ellipseWidth(float a, float b, float y) const {
     // Ellipsen-Gleichung x^2/a^2 - y^2/b^2 = 1, umgestellt nach x
     return static_cast<int>(round(sqrt((1.0 - (y*y)/(b*b)) * (a*a))*2.0));
 }
 
-bool BubbleEllipse::contains(int x, int y) {
+bool BubbleEllipse::contains(int x, int y) const {
     /*if (centerx-radiusx/2 <= x && x < centerx+radiusx/2 &&
 	centery-radiusy/2 <= y && y < centery+radiusy/2) {
 	return true;
@@ -76,14 +76,13 @@ bool BubbleEllipse::contains(int x, int y) {
     if ( ((x*x) / (float)(radiusx*radiusx)  +  (y*y) / (float)(radiusy*radiusy))  <= 1.0) {
 	return true;
     } else return false;
-    
 }
 
-void BubbleEllipse::writeImage() {
+void BubbleEllipse::writeImage() const {
     int fontsize = static_cast<int>(font->size);//todo
     bgcolor->use();
     imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
-    
+
     // Wähle die Höhe der 1. Zeile so, dass das 1. Wort gerade hineinpasst.
     int width, height;
     unsigned first_idx     = text.find(' ');
@@ -97,7 +96,7 @@ void BubbleEllipse::writeImage() {
 	//first_word.c_str(), width, ellipseWidth(radiusx, radiusy, abs(height)), height);
     } while (ellipseWidth(radiusx, radiusy, abs(height)) < width && height <= 0);
     height += fontsize/3;
-    
+
     // Schreibe den Text nacheinander in die Zeilen.
     string rest  = text;
     while(rest.length() > 0) {
@@ -111,6 +110,18 @@ void BubbleEllipse::writeImage() {
     }
 }
 
+void BubbleEllipse::writeXML(std::ostream& str, const std::string& text) const {
+  str << "<ellipse "
+      << "centerx=\""<< centerx <<"\" "
+      << "centery=\""<< centery <<"\" "
+      << "radiusx=\""<< radiusx <<"\" "
+      << "radiusy=\""<< radiusy <<"\" "
+      << "font=\"default\" "
+      << "bgcolor=\"default\">"
+      << text
+      << "</ellipse>\n";
+}
+
 BubbleRectangle::BubbleRectangle(int _x0, int _y0, int _width, int _height,
 				 CFont *_font, Color *_bgcolor)
     : Bubble(_font, _bgcolor, ""),
@@ -122,14 +133,14 @@ BubbleRectangle::BubbleRectangle(int _x0, int _y0, int _width, int _height,
     if (height < 8) std::cerr<< "Warning: Rectangle Height "<<height<<" too small.\n";
 }
 
-bool BubbleRectangle::contains(int x, int y) {
+bool BubbleRectangle::contains(int x, int y) const {
     if (x0 <= x && x < x0+width &&
 	y0 <= y && y < y0+height) {
 	return true;
     } else return false;
 }
 
-void BubbleRectangle::writeImage() {
+void BubbleRectangle::writeImage() const {
     int fontsize = static_cast<int>(font->size);//todo
     bgcolor->use();
     imlib_image_fill_rectangle(x0, y0, width, height);
@@ -146,3 +157,16 @@ void BubbleRectangle::writeImage() {
 	txtheight += fontsize*1.7;
     }
 }
+
+void BubbleRectangle::writeXML(std::ostream& str, const std::string& text) const {
+  str << "<rectangle "
+      << "x0=\""<< x0 <<"\" "
+      << "y0=\""<< y0 <<"\" "
+      << "width=\""<< width <<"\" "
+      << "height=\""<< height <<"\" "
+      << "font=\"default\" "
+      << "bgcolor=\"default\">"
+      << text
+      << "</rectangle>\n";
+}
+

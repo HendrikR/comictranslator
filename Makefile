@@ -1,5 +1,5 @@
 EXEC = detect draw edit
-CXXFLAGS = -g -Wall -Wwrite-strings
+CXXFLAGS = -g -Wall -Wwrite-strings -std=c++11
 
 
 all: $(EXEC)

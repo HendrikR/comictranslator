@@ -31,7 +31,7 @@ using namespace cv;
 // We need this to be high enough to get rid of things that are too small too
 // have a definite shape.  Otherwise, they will end up as ellipse false positives.
 //
-#define MIN_AREA 100.00    
+#define MIN_AREA 100.00
 //
 // One way to tell if an object is an ellipse is to look at the relationship
 // of its area to its dimensions.  If its actual occupied area can be estimated
@@ -53,22 +53,22 @@ void myConvexityDefects( InputArray _points, InputArray _hull, OutputArray _defe
     Mat hull = _hull.getMat();
     CV_Assert( hull.checkVector(1, CV_32S) > 2 );
     Ptr<CvMemStorage> storage = cvCreateMemStorage();
-    
+
     CvMat c_points = points, c_hull = hull;
     CvSeq* seq = cvConvexityDefects(&c_points, &c_hull, storage);
     int i, n = seq->total;
-    
+
     if( n == 0 ) {
         _defects.release();
         return;
     }
-    
+
     _defects.create(n, 1, CV_32SC4);
     Mat defects = _defects.getMat();
-    
+
     SeqIterator<CvConvexityDefect> it = Seq<CvConvexityDefect>(seq).begin();
     CvPoint* ptorg = (CvPoint*)points.data;
-    
+
     for( i = 0; i < n; i++, ++it ) {
         CvConvexityDefect& d = *it;
         int idx0 = (int)(d.start - ptorg);
@@ -172,7 +172,7 @@ bool smaller_by_coords(const RotatedRect &a, const RotatedRect &b) {
 	return false;
     }
 }
-    
+
 int main( int argc, char** argv )
 {
     Mat src;
@@ -190,7 +190,7 @@ int main( int argc, char** argv )
     }
     Mat dst(src.rows, src.cols, CV_8UC3);
     dst.setTo(0);
-    
+
     // Rand schwarz malen, damit auch die Sprechblasen erkannt werden, die über den Rahmen hinausragen.
     floodFill(src, Point(0,0), 0);
     floodFill(src, Point(src.cols-1,0), 0);
@@ -203,12 +203,13 @@ int main( int argc, char** argv )
     //cv::imwrite("debug.png", src);
     // Und nach achsenparallelen Ellipsen suchen.
     findEllipses(src, dst, ellipses, 0.03);
-    
+
+    // TODO: use Comicfile::writeXML(ostream& str) instead
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
     printf("<comic name=\"%s\" lang=\"de\">\n", argv[1]);
     printf("<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n");
     printf("<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n");
-    
+
     std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
     vector<RotatedRect>::iterator e = ellipses.begin();
     for(uint16_t i = 0; i < ellipses.size(); i++) {

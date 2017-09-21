@@ -13,16 +13,17 @@ public:
     string text;
     CFont *font;
     Color *bgcolor;
-    
-    string replace_all(string str, string from, string to);
-    string drawTextLine(int x0, int y0, string text, int maxwidth, float rel_height, bool centered=true);
+
+    string replace_all(string str, string from, string to) const; // todo: this should go into a util library, or use some std::-function
+    string drawTextLine(int x0, int y0, string text, int maxwidth, float rel_height, bool centered=true) const;
     Bubble(CFont* _font, Color* _bgcolor, string _text)
 	: text(_text), font(_font), bgcolor(_bgcolor)
 	{}
 public:
-    virtual void writeImage() = 0;
-    virtual void draw() = 0;
-    virtual bool contains(int x, int y) = 0;
+    virtual void writeImage() const = 0;
+    virtual void writeXML(std::ostream& str, const std::string& text) const = 0;
+    virtual void draw() const = 0;
+    virtual bool contains(int x, int y) const = 0;
     void setText(string str);
 };
 
@@ -32,10 +33,11 @@ class BubbleEllipse : public Bubble {
 public:
     BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
 		  CFont *_font, Color *_bgcolor);
-    virtual void writeImage();
-    virtual void draw();
-    virtual bool contains(int x, int y);
-    int ellipseWidth(float a, float b, float y);
+    virtual void writeImage() const override;
+    virtual void writeXML(std::ostream& str, const std::string& text) const override;
+    virtual void draw() const override;
+    virtual bool contains(int x, int y) const override;
+    int ellipseWidth(float a, float b, float y) const;
 };
 
 class BubbleRectangle : public Bubble {
@@ -44,8 +46,9 @@ class BubbleRectangle : public Bubble {
 public:
     BubbleRectangle(int _x0, int _y0, int _width, int _height,
 		    CFont *_font, Color *_bgcolor);
-    virtual void writeImage();
-    virtual void draw();
-    virtual bool contains(int x, int y);
+    virtual void writeImage() const override;
+    virtual void writeXML(std::ostream& str, const std::string& text) const override;
+    virtual void draw() const override;
+    virtual bool contains(int x, int y) const override;
 };
 #endif

@@ -75,13 +75,13 @@ public:
 	case FL_DRAG:
 	    if (select_mode) {
 		damage(FL_DAMAGE_USER1);
-		ret = 1; 
+		ret = 1;
 	    }
 	    break;
         }
         return(1);
     }
-    
+
     void draw() {
         if ( damage() != FL_DAMAGE_USER1 ) {
 	    img->draw(x(), y(), w(), h());

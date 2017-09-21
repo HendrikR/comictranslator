@@ -16,6 +16,7 @@ using std::string;
 
 
 class Comicfile {
+    // TODO: add a "name" field to the comicfile, to write out to XML?
     string imgfile;
     string language;
     std::map<string, Color*> colors;
@@ -42,8 +43,10 @@ public:
     CFont*  getFont(string id) {
 	return fonts[id];
     }
-    void writeImage();
-    void draw();
+    void writeImage() const;
+    void writeXML(std::ostream& str) const;
+    void draw() const;
+    static void addFontpath(string path = "./fonts");
 };
 
 
