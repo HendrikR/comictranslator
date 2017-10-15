@@ -110,7 +110,7 @@ void BubbleEllipse::writeImage() const {
     }
 }
 
-void BubbleEllipse::writeXML(std::ostream& str, const std::string& text) const {
+void BubbleEllipse::writeXML(std::ostream& str) const {
   str << "<ellipse "
       << "centerx=\""<< centerx <<"\" "
       << "centery=\""<< centery <<"\" "
@@ -158,7 +158,7 @@ void BubbleRectangle::writeImage() const {
     }
 }
 
-void BubbleRectangle::writeXML(std::ostream& str, const std::string& text) const {
+void BubbleRectangle::writeXML(std::ostream& str) const {
   str << "<rectangle "
       << "x0=\""<< x0 <<"\" "
       << "y0=\""<< y0 <<"\" "

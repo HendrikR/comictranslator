@@ -21,7 +21,7 @@ public:
 	{}
 public:
     virtual void writeImage() const = 0;
-    virtual void writeXML(std::ostream& str, const std::string& text) const = 0;
+    virtual void writeXML(std::ostream& str) const = 0;
     virtual void draw() const = 0;
     virtual bool contains(int x, int y) const = 0;
     void setText(string str);
@@ -34,7 +34,7 @@ public:
     BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
 		  CFont *_font, Color *_bgcolor);
     virtual void writeImage() const override;
-    virtual void writeXML(std::ostream& str, const std::string& text) const override;
+    virtual void writeXML(std::ostream& str) const override;
     virtual void draw() const override;
     virtual bool contains(int x, int y) const override;
     int ellipseWidth(float a, float b, float y) const;
@@ -47,7 +47,7 @@ public:
     BubbleRectangle(int _x0, int _y0, int _width, int _height,
 		    CFont *_font, Color *_bgcolor);
     virtual void writeImage() const override;
-    virtual void writeXML(std::ostream& str, const std::string& text) const override;
+    virtual void writeXML(std::ostream& str) const override;
     virtual void draw() const override;
     virtual bool contains(int x, int y) const override;
 };

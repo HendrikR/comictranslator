@@ -24,6 +24,7 @@
 #include <fstream>
 
 int main(int argc, char *argv[]) {
+    Comicfile::addFontpath("./fonts");
     if(argc == 2) {
 	Comicfile* comic = parse_XML(argv[1]);
 	comic->writeImage();

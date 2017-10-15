@@ -5,9 +5,6 @@
 
 const uint32_t BUFSIZE=0x10000;
 
-// Filename for the translated comic
-string filename_out;
-
 Comicfile* comic;
 Bubble* current_bubble;
 
@@ -88,7 +85,7 @@ static void XMLCALL xml_end(void *data, const char *_elem) {
 	    exit(-1);
 	}
 	comic->add(current_bubble);
-	current_bubble = 0;
+	current_bubble = nullptr;
     }
 }
 
@@ -172,9 +169,8 @@ void Comicfile::writeXML(std::ostream& str) const {
     str << "<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n";
     str << "<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
 
-    int text_num = 0;
     for (const Bubble* b : bubbles) {
-        b->writeXML( str, "text" + std::to_string( text_num++ ) );
+        b->writeXML( str );
     }
     str << "</comic>\n";
 

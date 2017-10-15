@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
 #include <stdlib.h>
 #include <math.h>
 #include "color.hpp"
@@ -36,6 +37,10 @@ public:
     Bubble* add(Bubble* b) {
 	bubbles.push_back(b);
 	return b;
+    }
+    void del(Bubble* b) {
+        auto b_in = std::find(bubbles.begin(), bubbles.end(), b);
+        if (b_in != bubbles.end()) bubbles.erase(b_in);
     }
     Color*  getColor(string id) {
 	return colors[id];
