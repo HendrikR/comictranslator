@@ -110,9 +110,9 @@ public:
     }
 };
 
-Fl_Image* load_image(char* name) {
+Fl_Image* load_image(const char* name) {
     Fl_Image* ret = 0;
-    char* suffix = rindex(name, '.')+1;
+    const char* suffix = rindex(name, '.')+1;
     if (!strcasecmp(suffix, "jpg") || !strcasecmp(suffix, "jpeg")) {
 	ret = new Fl_JPEG_Image(name);
     } else if (!strcasecmp(suffix, "png")) {
@@ -129,10 +129,10 @@ Fl_Image* load_image(char* name) {
     }
 }
 
-int main() {
+int main(int ARGC, char** ARGV) {
     MyOverlayWindow win(800, 600);
     win.resizable(win);
-    Fl_Image* img = load_image("oots0123.png");
+    Fl_Image* img = load_image(ARGV[1]);
     if (img == 0) {
 	fprintf(stderr, "Error: cannot load image file\n");
 	exit(1);

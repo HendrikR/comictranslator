@@ -20,10 +20,14 @@
  * with these bubbles ready to be used with draw.cpp.
  */
 
-#include <opencv2/opencv.hpp>
-#include <stdio.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+//#include <opencv2/imgproc/imgcodecs.hpp>
 #include <algorithm>
+#include <iostream>
+#include <iomanip>
 #include <stdint.h>
+#include <Imlib2.h>
 
 using namespace cv;
 
@@ -52,24 +56,22 @@ void myConvexityDefects( InputArray _points, InputArray _hull, OutputArray _defe
     CV_Assert( ptnum > 3 );
     Mat hull = _hull.getMat();
     CV_Assert( hull.checkVector(1, CV_32S) > 2 );
-    Ptr<CvMemStorage> storage = cvCreateMemStorage();
 
-    CvMat c_points = points, c_hull = hull;
-    CvSeq* seq = cvConvexityDefects(&c_points, &c_hull, storage);
-    int i, n = seq->total;
+    std::vector<CvConvexityDefect> seq;
+    convexityDefects(_points, _hull, seq);
 
-    if( n == 0 ) {
+    if( seq.size() == 0 ) {
         _defects.release();
         return;
     }
 
-    _defects.create(n, 1, CV_32SC4);
+    _defects.create(seq.size(), 1, CV_32SC4);
     Mat defects = _defects.getMat();
 
-    SeqIterator<CvConvexityDefect> it = Seq<CvConvexityDefect>(seq).begin();
+    auto it = seq.begin();
     CvPoint* ptorg = (CvPoint*)points.data;
 
-    for( i = 0; i < n; i++, ++it ) {
+    for( unsigned i = 0;  i < seq.size();  ++i, ++it ) {
         CvConvexityDefect& d = *it;
         int idx0 = (int)(d.start - ptorg);
         int idx1 = (int)(d.end - ptorg);
@@ -173,19 +175,19 @@ bool smaller_by_coords(const RotatedRect &a, const RotatedRect &b) {
     }
 }
 
-int main( int argc, char** argv )
+int main( int ARGC, char** ARGV )
 {
     Mat src;
     vector<RotatedRect> ellipses;
 
-    if(argc == 2) {
-	src = imread(argv[1], 0);
+    if(ARGC == 2) {
+	src = imread(ARGV[1], 0);
 	if (src.data == 0) {
-	    fprintf(stderr, "Error loading image file %s\n", argv[1]);
+            std::cerr << "Error loading image file " << ARGV[1] << std::endl;
 	    exit(-1);
-	}
+        }
     } else {
-	fprintf(stderr, "usage: %s <image file>\n", argv[0]);
+        std::cerr << "usage: "<< ARGV[0] <<" <image file>" << std::endl;
 	exit(0);
     }
     Mat dst(src.rows, src.cols, CV_8UC3);
@@ -205,20 +207,23 @@ int main( int argc, char** argv )
     findEllipses(src, dst, ellipses, 0.03);
 
     // TODO: use Comicfile::writeXML(ostream& str) instead
-    printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
-    printf("<comic name=\"%s\" lang=\"de\">\n", argv[1]);
-    printf("<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n");
-    printf("<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n");
+    std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+    std::cout << "<comic name=\""<< ARGV[1] <<"\" lang=\"de\">\n";
+    std::cout << "<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n";
+    std::cout << "<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
 
     std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
     vector<RotatedRect>::iterator e = ellipses.begin();
     for(uint16_t i = 0; i < ellipses.size(); i++) {
 	ellipse(dst, *e, Scalar(255,0,0), 2);
-	printf("<ellipse centerx=\"%d\" centery=\"%d\" radiusx=\"%d\" radiusy=\"%d\" font=\"default\" bgcolor=\"default\">Text%02d\n</ellipse>\n",
-	       cvRound(e->center.x), cvRound(e->center.y),
-	       cvRound(e->size.height/2)-1, cvRound(e->size.width/2)-1,
-	       i);
-	++e;
+	std::cout << "<ellipse "
+                  << "centerx=\""<< cvRound(e->center.x) << '"'
+                  << "centery=\""<< cvRound(e->center.y) << '"'
+                  << "radiusx=\""<< cvRound(e->size.height/2 - 1) << '"'
+                  << "radiusy=\""<< cvRound(e->size.height/2 - 1) << '"'
+                  << "font=\"default\" bgcolor=\"default\">"
+                  << "Text"<< std::right << std::setfill('0') << std::setw(2) << i << "</ellipse>\n";
+        ++e;
     }
-    printf("</comic>\n");
+    std::cout << "</comic>\n";
 }

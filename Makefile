@@ -8,7 +8,7 @@ all: $(EXEC)
 	$(CXX) $(CXXFLAGS) -c $+ -o $@
 
 detect: detect.o
-	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --libs opencv`
+	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --libs imlib2` -lopencv_core -lopencv_imgproc -lopencv_imgcodecs
 draw: draw.o comicfile.o bubble.o cfont.o color.o
 	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --libs imlib2 expat`
 edit: edit.o comicfile.o bubble.o cfont.o color.o
