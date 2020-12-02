@@ -101,7 +101,7 @@ void BubbleEllipse::writeImage() const {
     string rest  = text;
     while(rest.length() > 0) {
 	if (height > radiusy-2) {
-	    std::cerr<< "Error: text does not fit, aborting: "<< text <<".\n";
+	    std::cerr<< "Error: text does not fit: "<< text <<"\n";
 	    break;
 	}
 	width = ellipseWidth(radiusx, radiusy, abs(height));
@@ -111,15 +111,37 @@ void BubbleEllipse::writeImage() const {
 }
 
 void BubbleEllipse::writeXML(std::ostream& str) const {
-  str << "<ellipse "
-      << "centerx=\""<< centerx <<"\" "
-      << "centery=\""<< centery <<"\" "
-      << "radiusx=\""<< radiusx <<"\" "
-      << "radiusy=\""<< radiusy <<"\" "
-      << "font=\"default\" "
-      << "bgcolor=\"default\">"
-      << text
-      << "</ellipse>\n";
+    str << "<ellipse "
+	<< "centerx=\""<< centerx <<"\" "
+	<< "centery=\""<< centery <<"\" "
+	<< "radiusx=\""<< radiusx <<"\" "
+	<< "radiusy=\""<< radiusy <<"\" "
+	<< "font=\"default\" "
+	<< "bgcolor=\"default\">"
+	<< text
+	<< "</ellipse>\n";
+}
+
+void BubbleEllipse::writeJSON(std::ostream& str) const {
+    str << "  {\"ellipse\": \n"
+	<< "    \"centerx\": " << centerx << ", "
+	<< "    \"centery\": " << centery << ", "
+	<< "    \"radiusx\": " << radiusx << ", "
+	<< "    \"radiusy\": " << radiusy << ", "
+	<< "    \"font\": \"default\", "
+	<< "    \"bgcolor\": \"default\", "
+	<< "    \"text\": \"" << text << "\"},\n";
+}
+
+void BubbleEllipse::writeYAML(std::ostream& str) const {
+    str << "  - ellipse\n"
+	<< "    centerx: " << centerx << "\n"
+	<< "    centery: " << centery << "\n"
+	<< "    radiusx: " << radiusx << "\n"
+	<< "    radiusy: " << radiusy << "\n"
+	<< "    font: default\n"
+	<< "    bgcolor: default\n"
+	<< "    text: " << text << "\n";
 }
 
 BubbleRectangle::BubbleRectangle(int _x0, int _y0, int _width, int _height,
@@ -159,14 +181,36 @@ void BubbleRectangle::writeImage() const {
 }
 
 void BubbleRectangle::writeXML(std::ostream& str) const {
-  str << "<rectangle "
-      << "x0=\""<< x0 <<"\" "
-      << "y0=\""<< y0 <<"\" "
-      << "width=\""<< width <<"\" "
-      << "height=\""<< height <<"\" "
-      << "font=\"default\" "
-      << "bgcolor=\"default\">"
-      << text
-      << "</rectangle>\n";
+    str << "<rectangle "
+	<< "x0=\""<< x0 <<"\" "
+	<< "y0=\""<< y0 <<"\" "
+	<< "width=\""<< width <<"\" "
+	<< "height=\""<< height <<"\" "
+	<< "font=\"default\" "
+	<< "bgcolor=\"default\">"
+	<< text
+	<< "</rectangle>\n";
+}
+
+void BubbleRectangle::writeJSON(std::ostream& str) const {
+    str << "  {\"rectangle\": \n"
+	<< "    \"x0\": " << x0 << ", "
+	<< "    \"y0\": " << y0 << ", "
+	<< "    \"width\": " << width << ", "
+	<< "    \"height\": " << height << ", "
+	<< "    \"font\": \"default\", "
+	<< "    \"bgcolor\": \"default\", "
+	<< "    \"text\": \"" << text << "\"},\n";
+}
+
+void BubbleRectangle::writeYAML(std::ostream& str) const {
+    str << "  - rectangle "
+	<< "    x0: " << x0 <<"\n"
+	<< "    y0: " << y0 <<"\n"
+	<< "    width: " << width <<"\n"
+	<< "    height: " << height <<"\n"
+	<< "    font: default\n"
+	<< "    bgcolor: default\n"
+	<< "    text: " << text << "\n";
 }
 

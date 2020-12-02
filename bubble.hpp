@@ -10,6 +10,8 @@ class Bubble {
     //std::map<string, string> args;
 protected:
 public:
+    enum DrawMode { OUTLINE, FILL, ALL };
+
     string text;
     CFont *font;
     Color *bgcolor;
@@ -22,7 +24,9 @@ public:
 public:
     virtual void writeImage() const = 0;
     virtual void writeXML(std::ostream& str) const = 0;
-    virtual void draw() const = 0;
+    virtual void writeJSON(std::ostream& str) const = 0;
+    virtual void writeYAML(std::ostream& str) const = 0;
+    virtual void draw(DrawMode mode = ALL) const = 0;
     virtual bool contains(int x, int y) const = 0;
     void setText(string str);
 };
@@ -35,7 +39,9 @@ public:
 		  CFont *_font, Color *_bgcolor);
     virtual void writeImage() const override;
     virtual void writeXML(std::ostream& str) const override;
-    virtual void draw() const override;
+    virtual void writeJSON(std::ostream& str) const override;
+    virtual void writeYAML(std::ostream& str) const override;
+    virtual void draw(DrawMode mode = ALL) const override;
     virtual bool contains(int x, int y) const override;
     int ellipseWidth(float a, float b, float y) const;
 };
@@ -48,7 +54,9 @@ public:
 		    CFont *_font, Color *_bgcolor);
     virtual void writeImage() const override;
     virtual void writeXML(std::ostream& str) const override;
-    virtual void draw() const override;
+    virtual void writeJSON(std::ostream& str) const override;
+    virtual void writeYAML(std::ostream& str) const override;
+    virtual void draw(DrawMode mode = ALL) const override;
     virtual bool contains(int x, int y) const override;
 };
 #endif
