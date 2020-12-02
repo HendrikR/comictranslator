@@ -55,7 +55,7 @@ public:
         fl_draw_image(pixbuf, x(), y(), w(), h(), 4, 0);
 	for (unsigned i=0; i<comic->bubbles.size(); i++) {
 	    Bubble* bubble = comic->bubbles[i];
-	    bubble->draw();
+	    bubble->draw(Bubble::FILL);
 	}
     }
     void load_image() {
@@ -106,22 +106,23 @@ public:
 
     int handle_move(int event, int cx, int cy) {
         if (editmode == DM_POINT) {
-            Bubble* bubble = bubbleAt(cx, cy);
-            if (bubble != NULL) {
-                text_bar->value(bubble->text.c_str());
-                current = bubble;
-                bubble->draw();
-                free(pixbuf);
-                load_image();
-                draw();
-            }
         }
         return 1;
     }
 
     int handle_push(int event, int cx, int cy) {
+	Bubble* bubble = bubbleAt(cx, cy);
         switch (editmode) {
-        case DM_POINT: break;
+        case DM_POINT:
+            if (bubble != NULL) {
+                text_bar->value(bubble->text.c_str());
+                current = bubble;
+                bubble->draw(Bubble::OUTLINE);
+                free(pixbuf);
+                load_image();
+                draw();
+            }
+	    break;
         case DM_DRAW_RECT: // fallthrough
         case DM_DRAW_CIRC:
             oldx = cx;
@@ -149,7 +150,7 @@ public:
                 exit(-1);
             }
             comic->add(bubble);
-            bubble->draw();
+            bubble->draw(Bubble::FILL);
             current = bubble;
             editmode = DM_POINT;
             mainWindow->cursor(FL_CURSOR_DEFAULT);
@@ -271,10 +272,14 @@ void Comicfile::draw() const {
     }
 }
 
-void BubbleEllipse::draw() const {
-    if (this == current) {
+void BubbleEllipse::draw(Bubble::DrawMode mode) const {
+    switch(mode) {
+    case OUTLINE:
 	imlib_context_set_color(128,0,0,128);
-    } else {
+	break;
+    case FILL:
+	bgcolor->use();
+    case ALL:
 	bgcolor->use();
     }
     imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
@@ -282,10 +287,14 @@ void BubbleEllipse::draw() const {
     imlib_text_draw(centerx-13, centery-6, "TEXT");
 }
 
-void BubbleRectangle::draw() const {
-    if (this == current) {
+void BubbleRectangle::draw(Bubble::DrawMode mode) const {
+    switch(mode) {
+    case OUTLINE:
 	imlib_context_set_color(128,0,0,128);
-    } else {
+	break;
+    case FILL:
+	bgcolor->use();
+    case ALL:
 	bgcolor->use();
     }
     imlib_image_fill_rectangle(x0, y0, width, height);
