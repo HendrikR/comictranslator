@@ -36,5 +36,3 @@ int main(int argc, char *argv[]) {
 }
 
 void Comicfile::draw() const {}
-void BubbleEllipse::draw() const {}
-void BubbleRectangle::draw() const {}

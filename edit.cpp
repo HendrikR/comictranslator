@@ -271,34 +271,3 @@ void Comicfile::draw() const {
 	(*b)->draw();
     }
 }
-
-void BubbleEllipse::draw(Bubble::DrawMode mode) const {
-    switch(mode) {
-    case OUTLINE:
-	imlib_context_set_color(128,0,0,128);
-	break;
-    case FILL:
-	bgcolor->use();
-    case ALL:
-	bgcolor->use();
-    }
-    imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
-    font->use();
-    imlib_text_draw(centerx-13, centery-6, "TEXT");
-}
-
-void BubbleRectangle::draw(Bubble::DrawMode mode) const {
-    switch(mode) {
-    case OUTLINE:
-	imlib_context_set_color(128,0,0,128);
-	break;
-    case FILL:
-	bgcolor->use();
-    case ALL:
-	bgcolor->use();
-    }
-    imlib_image_fill_rectangle(x0, y0, width, height);
-    font->use();
-    imlib_text_draw(x0+0.05*width, y0+0.05*height, "TEXT");
-}
-

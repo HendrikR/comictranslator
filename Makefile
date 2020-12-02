@@ -10,9 +10,9 @@ all: $(EXEC)
 
 detect: detect.o
 	$(CXX) $(CXXFLAGS) $+ -o $@ $(OPENCV_LIBS)
-draw: draw.o comicfile.o bubble.o cfont.o color.o
+draw: draw.o comicfile.o bubble.o bubble_ellipse.o bubble_rectangle.o cfont.o color.o
 	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --libs imlib2 expat`
-edit: edit.o comicfile.o bubble.o cfont.o color.o
+edit: edit.o comicfile.o bubble.o bubble_ellipse.o bubble_rectangle.o cfont.o color.o
 	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --libs imlib2 expat` -lfltk
 test: test.cpp
 	$(CXX) $(CXXFLAGS) $+ -o $@ -lfltk -lfltk_gl -lGL

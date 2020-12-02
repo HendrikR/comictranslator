@@ -12,6 +12,8 @@
 #include "color.hpp"
 #include "cfont.hpp"
 #include "bubble.hpp"
+#include "bubble_ellipse.hpp"
+#include "bubble_rectangle.hpp"
 
 using std::string;
 

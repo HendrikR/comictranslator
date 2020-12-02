@@ -1,5 +1,4 @@
-#ifndef _BUBBLE_H_
-#define _BUBBLE_H_
+#pragma once
 
 #include "color.hpp"
 #include "cfont.hpp"
@@ -30,33 +29,3 @@ public:
     virtual bool contains(int x, int y) const = 0;
     void setText(string str);
 };
-
-class BubbleEllipse : public Bubble {
-    int centerx, centery;
-    int radiusx, radiusy;
-public:
-    BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
-		  CFont *_font, Color *_bgcolor);
-    virtual void writeImage() const override;
-    virtual void writeXML(std::ostream& str) const override;
-    virtual void writeJSON(std::ostream& str) const override;
-    virtual void writeYAML(std::ostream& str) const override;
-    virtual void draw(DrawMode mode = ALL) const override;
-    virtual bool contains(int x, int y) const override;
-    int ellipseWidth(float a, float b, float y) const;
-};
-
-class BubbleRectangle : public Bubble {
-    int x0, y0;
-    int width, height;
-public:
-    BubbleRectangle(int _x0, int _y0, int _width, int _height,
-		    CFont *_font, Color *_bgcolor);
-    virtual void writeImage() const override;
-    virtual void writeXML(std::ostream& str) const override;
-    virtual void writeJSON(std::ostream& str) const override;
-    virtual void writeYAML(std::ostream& str) const override;
-    virtual void draw(DrawMode mode = ALL) const override;
-    virtual bool contains(int x, int y) const override;
-};
-#endif
