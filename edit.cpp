@@ -106,6 +106,15 @@ public:
 
     int handle_move(int event, int cx, int cy) {
         if (editmode == DM_POINT) {
+	    Bubble* bubble = bubbleAt(cx, cy);
+            if (bubble != NULL) {
+                text_bar->value(bubble->text.c_str());
+                current = bubble;
+                bubble->draw(Bubble::OUTLINE);
+                free(pixbuf);
+                load_image();
+                draw();
+            }
         }
         return 1;
     }
@@ -133,29 +142,27 @@ public:
     }
 
     int handle_release(int event, int cx, int cy) {
+	std::cout << "release at " << cx <<", " << cy << std::endl;
+	if ( editmode == DM_POINT ) return 1;
         Bubble* bubble;
-        switch (editmode) {
-        case DM_POINT: break;
-        case DM_DRAW_RECT: // fallthrough
-        case DM_DRAW_CIRC:
-            if (cx < oldx) std::swap(oldx, cx);
-            if (cy < oldy) std::swap(oldy, cy);
-            if ( editmode == DM_DRAW_RECT ) {
-                bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
-            } else if ( editmode == DM_DRAW_CIRC ) {
-                int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
-                bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
-            } else {
-                std::cerr<< "Invalid shape creation\n";
-                exit(-1);
-            }
-            comic->add(bubble);
-            bubble->draw(Bubble::FILL);
-            current = bubble;
-            editmode = DM_POINT;
-            mainWindow->cursor(FL_CURSOR_DEFAULT);
-            break;
-        }
+	if (cx < oldx) std::swap(oldx, cx);
+	if (cy < oldy) std::swap(oldy, cy);
+	if ( editmode == DM_DRAW_RECT ) {
+	    bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
+	    redraw();
+	} else if ( editmode == DM_DRAW_CIRC ) {
+	    int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
+	    bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
+	    redraw();
+	} else {
+	    std::cerr<< "Invalid shape creation\n";
+	    exit(-1);
+	}
+	comic->add(bubble);
+	bubble->draw(Bubble::FILL);
+	current = bubble;
+	editmode = DM_POINT;
+	mainWindow->cursor(FL_CURSOR_DEFAULT);
         return 1;
     }
 
@@ -163,6 +170,7 @@ public:
         fl_color(255, 0, 255);
         fl_line_style(FL_DASH, 1, const_cast<char*>("\x04\x04"));
         if (editmode == DM_DRAW_RECT) {
+	    std::cout << "drag from (" << oldx <<", " << oldy+30 << ") to (" << cx <<", "<<cy << std::endl;
             fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
             redraw();
         } else if (editmode == DM_DRAW_CIRC) {
