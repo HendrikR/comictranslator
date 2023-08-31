@@ -26,10 +26,6 @@ int BubbleEllipse::ellipseWidth(float a, float b, float y) const {
 }
 
 bool BubbleEllipse::contains(int x, int y) const {
-    /*if (centerx-radiusx/2 <= x && x < centerx+radiusx/2 &&
-	centery-radiusy/2 <= y && y < centery+radiusy/2) {
-	return true;
-    } else return false;*/
     x -= centerx;
     y -= centery;
     if ( ((x*x) / (float)(radiusx*radiusx)  +  (y*y) / (float)(radiusy*radiusy))  <= 1.0) {
@@ -37,12 +33,9 @@ bool BubbleEllipse::contains(int x, int y) const {
     } else return false;
 }
 
-void BubbleEllipse::writeImage() const {
-    int fontsize = static_cast<int>(font->size);//todo
-    bgcolor->use();
-    imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
-
+int BubbleEllipse::renderText() const {
     // Wähle die Höhe der 1. Zeile so, dass das 1. Wort gerade hineinpasst.
+    int fontsize = static_cast<int>(font->size);
     int width, height;
     unsigned first_idx     = text.find(' ');
     string first_word = (first_idx != string::npos) ? text.substr(0,first_idx) : text;
@@ -67,6 +60,13 @@ void BubbleEllipse::writeImage() const {
 	rest = drawTextLine(centerx-width/2, centery+height, rest, width, height/(float)radiusx);
 	height += fontsize*1.7;
     }
+    return height;
+}
+
+void BubbleEllipse::writeImage() const {
+    bgcolor->use();
+    imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
+    this->renderText();
 }
 
 void BubbleEllipse::writeXML(std::ostream& str) const {
@@ -114,6 +114,5 @@ void BubbleEllipse::draw(Bubble::DrawMode mode) const {
 	bgcolor->use();
     }
     imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
-    font->use();
-    imlib_text_draw(centerx-13, centery-6, "TEXT");
+    this->renderText();
 }

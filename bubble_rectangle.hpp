@@ -13,6 +13,7 @@ public:
     virtual void writeJSON(std::ostream& str) const override;
     virtual void writeYAML(std::ostream& str) const override;
     virtual void draw(DrawMode mode = ALL) const override;
+    virtual int renderText() const override;
     virtual bool contains(int x, int y) const override;
 };
 

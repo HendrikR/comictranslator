@@ -14,5 +14,6 @@ public:
     virtual void writeYAML(std::ostream& str) const override;
     virtual void draw(DrawMode mode = ALL) const override;
     virtual bool contains(int x, int y) const override;
+    virtual int renderText() const override;
     int ellipseWidth(float a, float b, float y) const;
 };

@@ -23,12 +23,10 @@ bool BubbleRectangle::contains(int x, int y) const {
     } else return false;
 }
 
-void BubbleRectangle::writeImage() const {
-    int fontsize = static_cast<int>(font->size);//todo
-    bgcolor->use();
-    imlib_image_fill_rectangle(x0, y0, width, height);
+int BubbleRectangle::renderText() const {
     // Text schreiben
     string rest  = text;
+    int fontsize = static_cast<int>(font->size);
     int txtheight = 0.8*fontsize;
     font->use();
     while(rest.length() > 0) {
@@ -39,7 +37,15 @@ void BubbleRectangle::writeImage() const {
 	rest = drawTextLine(x0, y0+txtheight, rest, width, txtheight/(float)width, false);
 	txtheight += fontsize*1.7;
     }
+    return txtheight;
 }
+
+
+void BubbleRectangle::writeImage() const {
+    bgcolor->use();
+    imlib_image_fill_rectangle(x0, y0, width, height);
+    this->renderText();
+ }
 
 void BubbleRectangle::writeXML(std::ostream& str) const {
     str << "<rectangle "
@@ -86,7 +92,6 @@ void BubbleRectangle::draw(Bubble::DrawMode mode) const {
 	bgcolor->use();
     }
     imlib_image_fill_rectangle(x0, y0, width, height);
-    font->use();
-    imlib_text_draw(x0+0.05*width, y0+0.05*height, "TEXT");
+    this->renderText();
 }
 

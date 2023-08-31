@@ -27,5 +27,6 @@ public:
     virtual void writeYAML(std::ostream& str) const = 0;
     virtual void draw(DrawMode mode = ALL) const = 0;
     virtual bool contains(int x, int y) const = 0;
+    virtual int renderText() const = 0;
     void setText(string str);
 };
