@@ -1,7 +1,5 @@
 EXEC = detect draw edit
-# TODO: do I really need that -fPIE option?
-CXXFLAGS = -g -Wall -Wwrite-strings -std=c++11 `pkg-config --cflags opencv4` -fPIE
-OPENCV_LIBS = -lopencv_core -lopencv_imgproc -lopencv_imgcodecs
+CXXFLAGS = -g -Wall -Wwrite-strings -std=c++11 `pkg-config --cflags opencv4 imlib2 expat`
 
 all: $(EXEC)
 
@@ -9,7 +7,7 @@ all: $(EXEC)
 	$(CXX) $(CXXFLAGS) -c $+ -o $@
 
 detect: detect.o
-	$(CXX) $(CXXFLAGS) $+ -o $@ $(OPENCV_LIBS)
+	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --cflags opencv4`
 draw: draw.o comicfile.o bubble.o bubble_ellipse.o bubble_rectangle.o cfont.o color.o
 	$(CXX) $(CXXFLAGS) $+ -o $@ `pkg-config --libs imlib2 expat`
 edit: edit.o comicfile.o bubble.o bubble_ellipse.o bubble_rectangle.o cfont.o color.o
