@@ -28,5 +28,7 @@ public:
     virtual void draw(DrawMode mode = ALL) const = 0;
     virtual bool contains(int x, int y) const = 0;
     virtual int renderText() const = 0;
+    virtual void setPosition(int x, int y) = 0;
+    //virtual std::pair<int, int> getPosition() const = 0;
     void setText(string str);
 };

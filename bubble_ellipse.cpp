@@ -107,12 +107,21 @@ void BubbleEllipse::draw(Bubble::DrawMode mode) const {
     switch(mode) {
     case OUTLINE:
 	imlib_context_set_color(128,0,0,128);
+        imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
 	break;
     case FILL:
 	bgcolor->use();
+        imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
+        break;
     case ALL:
 	bgcolor->use();
+        imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
+        this->renderText();
+        break;
     }
-    imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
-    this->renderText();
+}
+
+void BubbleEllipse::setPosition(int x, int y) {
+    centerx = x;
+    centery = y;
 }

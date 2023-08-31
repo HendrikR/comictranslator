@@ -95,3 +95,7 @@ void BubbleRectangle::draw(Bubble::DrawMode mode) const {
     this->renderText();
 }
 
+void BubbleRectangle::setPosition(int x, int y) {
+    x0 = x - width/2;
+    y0 = y - height/2;
+}

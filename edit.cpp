@@ -32,8 +32,8 @@
 #include <FL/fl_draw.H>
 #include <assert.h>
 
-Bubble* current = 0;
 Fl_Window* mainWindow;
+Bubble* current;
 
 void cb_drawRect(Fl_Widget* widget, void* data);
 void cb_drawCirc(Fl_Widget* widget, void* data);
@@ -43,15 +43,20 @@ void cb_save(Fl_Widget* widget, void* data);
 
 class MyBox : public Fl_Box {
 public:
-    enum EditMode { DM_POINT, DM_DRAW_RECT, DM_DRAW_CIRC };
+    enum EditMode { DM_HOVER, DM_DRAW, DM_MOVE, DM_RESIZE };
+    enum EditSubMode { DSM_RECT, DSM_CIRC };
     uchar* pixbuf;              // image buffer
     Comicfile* comic;
     Fl_Input* text_bar;
-    EditMode editmode = DM_POINT;
+    EditMode editmode = DM_HOVER;
+    EditSubMode submode = DSM_RECT;
     int oldx, oldy;
 
     // FLTK DRAW METHOD
     void draw() {
+      if (comic != nullptr) comic->draw();
+      //return;
+      // TODO: this seems double work, and overwrites drawing happening elswhere (e.g. in event handlers)
         fl_draw_image(pixbuf, x(), y(), w(), h(), 4, 0);
 	for (unsigned i=0; i<comic->bubbles.size(); i++) {
 	    Bubble* bubble = comic->bubbles[i];
@@ -69,7 +74,6 @@ public:
 	}
 	redraw();
     }
-public:
     MyBox(int x0, int y0)
 	: Fl_Box(x0,y0, imlib_image_get_width(), imlib_image_get_height()) {
         // Create GUI
@@ -104,36 +108,39 @@ public:
 	return nullptr;
     }
 
-    int handle_move(int event, int cx, int cy) {
-        if (editmode == DM_POINT) {
-	    Bubble* bubble = bubbleAt(cx, cy);
-            if (bubble != NULL) {
-                text_bar->value(bubble->text.c_str());
-                current = bubble;
-                bubble->draw(Bubble::OUTLINE);
-                free(pixbuf);
-                load_image();
-                draw();
-            }
+    int handle_hover(int event, int cx, int cy) {
+        Bubble* bubble = bubbleAt(cx, cy);
+        if (bubble == nullptr) return 1;
+        switch(editmode) {
+        case DM_HOVER:
+            text_bar->value(bubble->text.c_str());
+            current = bubble;
+            bubble->draw(Bubble::OUTLINE);
+            free(pixbuf); // TODO: this does not seem right ...
+            load_image();
+            draw();
+            break;
+        case DM_MOVE:
+            // todo: should never happen
+            break;
         }
         return 1;
     }
 
-    int handle_push(int event, int cx, int cy) {
+    int handle_click(int event, int cx, int cy) {
 	Bubble* bubble = bubbleAt(cx, cy);
         switch (editmode) {
-        case DM_POINT:
+        case DM_HOVER:
             if (bubble != NULL) {
                 text_bar->value(bubble->text.c_str());
                 current = bubble;
                 bubble->draw(Bubble::OUTLINE);
-                free(pixbuf);
+                free(pixbuf); // TODO: this does not seem right ...
                 load_image();
                 draw();
             }
 	    break;
-        case DM_DRAW_RECT: // fallthrough
-        case DM_DRAW_CIRC:
+        case DM_DRAW: // create rectangle/ellipse
             oldx = cx;
             oldy = cy;
             break;
@@ -143,39 +150,53 @@ public:
 
     int handle_release(int event, int cx, int cy) {
 	std::cout << "release at " << cx <<", " << cy << std::endl;
-	if ( editmode == DM_POINT ) return 1;
         Bubble* bubble;
-	if (cx < oldx) std::swap(oldx, cx);
-	if (cy < oldy) std::swap(oldy, cy);
-	if ( editmode == DM_DRAW_RECT ) {
-	    bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
-	    redraw();
-	} else if ( editmode == DM_DRAW_CIRC ) {
-	    int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
-	    bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
-	    redraw();
-	} else {
-	    std::cerr<< "Invalid shape creation\n";
-	    exit(-1);
+        switch(editmode) {
+        case DM_HOVER: return 1;
+        case DM_MOVE:
+            std::cout << "release move move" << std::endl;
+            break;
+        case DM_DRAW: {
+            if (cx < oldx) std::swap(oldx, cx);
+            if (cy < oldy) std::swap(oldy, cy);
+            if (submode == DSM_RECT) {
+                bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
+            } else if (submode == DSM_CIRC) {
+                int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
+                bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
+            }
+            redraw();
+            break;
+        }
+        default:
+            std::cerr<< "Invalid shape creation\n";
+            exit(-1);
 	}
 	comic->add(bubble);
 	bubble->draw(Bubble::FILL);
 	current = bubble;
-	editmode = DM_POINT;
+	editmode = DM_HOVER;
 	mainWindow->cursor(FL_CURSOR_DEFAULT);
         return 1;
     }
 
     int handle_drag(int event, int cx, int cy) {
-        fl_color(255, 0, 255);
-        fl_line_style(FL_DASH, 1, const_cast<char*>("\x04\x04"));
-        if (editmode == DM_DRAW_RECT) {
-	    std::cout << "drag from (" << oldx <<", " << oldy+30 << ") to (" << cx <<", "<<cy << std::endl;
-            fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+        //Bubble* bubble = bubbleAt(cx, cy);
+        switch(editmode) {
+        case DM_DRAW:
+            if (submode == DSM_RECT) {
+                fl_color(255, 0, 255);
+                fl_line_style(FL_DASH, 1, const_cast<char*>("\x04\x04"));
+                fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+            } else if (submode == DSM_CIRC) {
+                //fl_pie(centerx-radiusx, centery-radiusy+30, 2*radiusx, 2*radiusy, 0, 360);
+                fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+            }
             redraw();
-        } else if (editmode == DM_DRAW_CIRC) {
-            //fl_pie(centerx-radiusx, centery-radiusy+30, 2*radiusx, 2*radiusy, 0, 360);
-            fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+        case DM_HOVER:
+            if (current == nullptr) return 1;
+            current->setPosition(cx, cy);
+            current->draw(Bubble::OUTLINE);
             redraw();
         }
         return 1;
@@ -186,8 +207,8 @@ public:
 	int cy = Fl::event_y() - y();
 
         switch(event) {
-        case FL_MOVE:    return handle_move   (event, cx, cy);
-        case FL_PUSH:    return handle_push   (event, cx, cy);
+        case FL_MOVE:    return handle_hover  (event, cx, cy);
+        case FL_PUSH:    return handle_click  (event, cx, cy);
         case FL_RELEASE: return handle_release(event, cx, cy);
         case FL_DRAG:    return handle_drag   (event, cx, cy);
         case FL_SHORTCUT: // fallthrough
@@ -203,17 +224,20 @@ void cb_drawRect(Fl_Widget* widget, void* data) {
     MyBox* my_box = static_cast<MyBox*>(data);
     assert( my_box != nullptr );
     mainWindow->cursor(FL_CURSOR_CROSS);
-    my_box->editmode = MyBox::DM_DRAW_RECT;
+    my_box->editmode = MyBox::DM_DRAW;
+    my_box->submode = MyBox::DSM_RECT;
 }
 
 void cb_drawCirc(Fl_Widget* widget, void* data) {
     MyBox* my_box = static_cast<MyBox*>(data);
     assert( my_box != nullptr );
     mainWindow->cursor(FL_CURSOR_CROSS);
-    my_box->editmode = MyBox::DM_DRAW_CIRC;
+    my_box->editmode = MyBox::DM_DRAW;
+    my_box->submode = MyBox::DSM_CIRC;
 }
 
 void cb_delShape(Fl_Widget* widget, void* data) {
+    // TODO: a bit unintuitive maybe. should i change cursor shape and delete on click?
     if ( !current ) return;
     MyBox* my_box = static_cast<MyBox*>(data);
     assert( my_box != nullptr );
