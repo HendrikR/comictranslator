@@ -190,18 +190,18 @@ int main( int ARGC, char** ARGV )
     std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
     std::cout << "<comic name=\""<< ARGV[1] <<"\" lang=\"de\">\n";
     std::cout << "<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n";
-    std::cout << "<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
+    std::cout << "<font id=\"default\" name=\"fonts/LiberationSans-Bold.ttf\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
 
     std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
     for(uint16_t i = 0; i < ellipses.size(); i++) {
 	const RotatedRect& e = ellipses[i];
 	ellipse(dst, e, Scalar(255,0,0), 2);
-	std::cout << "<ellipse "
-                  << "centerx=\""<< cvRound(e.center.x) << '"'
-                  << "centery=\""<< cvRound(e.center.y) << '"'
-                  << "radiusx=\""<< cvRound(e.size.height/2 - 1) << '"'
-                  << "radiusy=\""<< cvRound(e.size.height/2 - 1) << '"'
-                  << "font=\"default\" bgcolor=\"default\">"
+	std::cout << "<ellipse"
+                  << " centerx=\""<< cvRound(e.center.x) << '"'
+                  << " centery=\""<< cvRound(e.center.y) << '"'
+                  << " radiusx=\""<< cvRound(e.size.height/2 - 1) << '"'
+                  << " radiusy=\""<< cvRound(e.size.height/2 - 1) << '"'
+                  << " font=\"default\" bgcolor=\"default\">"
                   << "Text"<< std::right << std::setfill('0') << std::setw(2) << i << "</ellipse>\n";
     }
     std::cout << "</comic>\n";
