@@ -70,7 +70,7 @@ void BubbleEllipse::writeImage() const {
 }
 
 void BubbleEllipse::writeXML(std::ostream& str) const {
-    str << "<ellipse "
+    str << "  <ellipse "
 	<< "centerx=\""<< centerx <<"\" "
 	<< "centery=\""<< centery <<"\" "
 	<< "radiusx=\""<< radiusx <<"\" "
@@ -82,25 +82,25 @@ void BubbleEllipse::writeXML(std::ostream& str) const {
 }
 
 void BubbleEllipse::writeJSON(std::ostream& str) const {
-    str << "  {\"ellipse\": \n"
-	<< "    \"centerx\": " << centerx << ", "
-	<< "    \"centery\": " << centery << ", "
-	<< "    \"radiusx\": " << radiusx << ", "
-	<< "    \"radiusy\": " << radiusy << ", "
-	<< "    \"font\": \"default\", "
-	<< "    \"bgcolor\": \"default\", "
-	<< "    \"text\": \"" << text << "\"},\n";
+    str << "   \"{ellipse\":{\n"
+	<< "     \"centerx\": " << centerx << ", "
+	<< "     \"centery\": " << centery << ", "
+	<< "     \"radiusx\": " << radiusx << ", "
+	<< "     \"radiusy\": " << radiusy << ", "
+	<< "     \"font\": \"default\", "
+	<< "     \"bgcolor\": \"default\", "
+	<< "     \"text\": \"" << text << "\"}},\n";
 }
 
 void BubbleEllipse::writeYAML(std::ostream& str) const {
-    str << "  - ellipse\n"
-	<< "    centerx: " << centerx << "\n"
-	<< "    centery: " << centery << "\n"
-	<< "    radiusx: " << radiusx << "\n"
-	<< "    radiusy: " << radiusy << "\n"
-	<< "    font: default\n"
-	<< "    bgcolor: default\n"
-	<< "    text: " << text << "\n";
+    str << "   - ellipse\n"
+	<< "      centerx: " << centerx << "\n"
+	<< "      centery: " << centery << "\n"
+	<< "      radiusx: " << radiusx << "\n"
+	<< "      radiusy: " << radiusy << "\n"
+	<< "      font: default\n"
+	<< "      bgcolor: default\n"
+	<< "      text: " << text << "\n";
 }
 
 void BubbleEllipse::draw(Bubble::DrawMode mode) const {

@@ -60,25 +60,25 @@ void BubbleRectangle::writeXML(std::ostream& str) const {
 }
 
 void BubbleRectangle::writeJSON(std::ostream& str) const {
-    str << "  {\"rectangle\": \n"
-	<< "    \"x0\": " << x0 << ", "
-	<< "    \"y0\": " << y0 << ", "
-	<< "    \"width\": " << width << ", "
-	<< "    \"height\": " << height << ", "
-	<< "    \"font\": \"default\", "
-	<< "    \"bgcolor\": \"default\", "
-	<< "    \"text\": \"" << text << "\"},\n";
+    str << "   \"{rectangle\":{\n"
+	<< "     \"x0\": " << x0 << ", "
+	<< "     \"y0\": " << y0 << ", "
+	<< "     \"width\": " << width << ", "
+	<< "     \"height\": " << height << ", "
+	<< "     \"font\": \"default\", "
+	<< "     \"bgcolor\": \"default\", "
+	<< "     \"text\": \"" << text << "\"}},\n";
 }
 
 void BubbleRectangle::writeYAML(std::ostream& str) const {
-    str << "  - rectangle "
-	<< "    x0: " << x0 <<"\n"
-	<< "    y0: " << y0 <<"\n"
-	<< "    width: " << width <<"\n"
-	<< "    height: " << height <<"\n"
-	<< "    font: default\n"
-	<< "    bgcolor: default\n"
-	<< "    text: " << text << "\n";
+    str << "   - rectangle\n"
+	<< "      x0: " << x0 <<"\n"
+	<< "      y0: " << y0 <<"\n"
+	<< "      width: " << width <<"\n"
+	<< "      height: " << height <<"\n"
+	<< "      font: default\n"
+	<< "      bgcolor: default\n"
+	<< "      text: " << text << "\n";
 }
 
 void BubbleRectangle::draw(Bubble::DrawMode mode) const {

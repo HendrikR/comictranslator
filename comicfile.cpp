@@ -176,6 +176,41 @@ void Comicfile::writeXML(std::ostream& str) const {
 
 }
 
+void Comicfile::writeJSON(std::ostream& str) const {
+    str << "{'comicfile':[\n";
+    str << " {'name':'" << imgfile << "',\n";
+    str << "  'lang':'de',\n";
+    str << "  'bgcolor':{'id':'default','r':255, 'g':255, 'b':255}\n";
+    str << "  'font':{'id':'default', 'name':'ComicSansMSBold', 'size':8, 'colorr':0, 'colorg':0, 'colorb':0}\n";
+    str << "  'bubbles':{\n";
+    for (const Bubble* b : bubbles) {
+        b->writeXML( str );
+    }
+    str << "}]}\n";
+}
+
+void Comicfile::writeYAML(std::ostream& str) const {
+    str << "comicfile\n";
+    str << "  name: " << imgfile << "\n";
+    str << "  lang: de\n";
+    str << "  bgcolor:\n";
+    str << "   id:default\n";
+    str << "   r:255\n";
+    str << "   g:255\n";
+    str << "   b:255\n";
+    str << "  font:\n";
+    str << "   id: default\n";
+    str << "   name: ComicSansMSBold\n";
+    str << "   size: 8\n";
+    str << "   colorr: 0\n";
+    str << "   colorg: 0\n";
+    str << "   colorb: 0\n";
+    str << "  bubbles:\n";
+    for (const Bubble* b : bubbles) {
+        b->writeXML( str );
+    }
+}
+
 void Comicfile::addFontpath(string path) {
     CFont::addFontpath(path);
 }

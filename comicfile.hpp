@@ -52,6 +52,8 @@ public:
     }
     void writeImage() const;
     void writeXML(std::ostream& str) const;
+    void writeJSON(std::ostream& str) const;
+    void writeYAML(std::ostream& str) const;
     void draw() const;
     static void addFontpath(string path = "./fonts");
 };
