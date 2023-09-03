@@ -45,7 +45,8 @@ class MyBox : public Fl_Box {
 public:
     enum EditMode { DM_HOVER, DM_DRAW, DM_MOVE, DM_RESIZE };
     enum EditSubMode { DSM_RECT, DSM_CIRC };
-    uchar* pixbuf;              // image buffer
+    uchar* img_original;              // unchanged image buffer
+    uchar* img_display;              // displayed image buffer
     Comicfile* comic;
     Fl_Input* text_bar;
     EditMode editmode = DM_HOVER;
@@ -57,22 +58,26 @@ public:
       if (comic != nullptr) comic->draw();
       //return;
       // TODO: this seems double work, and overwrites drawing happening elswhere (e.g. in event handlers)
-        fl_draw_image(pixbuf, x(), y(), w(), h(), 4, 0);
+	size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
+	memcpy(img_display, img_original, img_size);
+        fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
 	for (unsigned i=0; i<comic->bubbles.size(); i++) {
 	    Bubble* bubble = comic->bubbles[i];
 	    bubble->draw(Bubble::FILL);
 	}
     }
     void load_image() {
-	pixbuf = (uchar*)calloc(imlib_image_get_width()*imlib_image_get_height(), 4);
+	size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
+	img_original = (uchar*)malloc(img_size);
+	img_display = (uchar*)malloc(img_size);
 	DATA32* data = imlib_image_get_data();
 	for (int i=0; i<w()*h(); i+=1) {
-	    pixbuf[4*i+0] = (data[i]>>16) & 0xFF; // b
-	    pixbuf[4*i+1] = (data[i]>> 8) & 0xFF; // g
-	    pixbuf[4*i+2] = (data[i]>> 0) & 0xFF; // r
-	    pixbuf[4*i+3] = (data[i]>>24) & 0xFF; // a
+	    img_original[4*i+0] = (data[i]>>16) & 0xFF; // b
+	    img_original[4*i+1] = (data[i]>> 8) & 0xFF; // g
+	    img_original[4*i+2] = (data[i]>> 0) & 0xFF; // r
+	    img_original[4*i+3] = (data[i]>>24) & 0xFF; // a
 	}
-	redraw();
+	memcpy(img_display, img_original, img_size);
     }
     MyBox(int x0, int y0)
 	: Fl_Box(x0,y0, imlib_image_get_width(), imlib_image_get_height()) {
@@ -93,7 +98,8 @@ public:
         bSave->callback(cb_save, this);
     }
     ~MyBox() {
-	free(pixbuf);
+	free(img_original);
+	free(img_display);
     }
     void setComic(Comicfile* _comic) {
 	comic = _comic;
@@ -135,8 +141,6 @@ public:
                 text_bar->value(bubble->text.c_str());
                 current = bubble;
                 bubble->draw(Bubble::OUTLINE);
-                free(pixbuf); // TODO: this does not seem right ...
-                load_image();
                 draw();
             }
 	    break;
@@ -299,7 +303,7 @@ void Comicfile::draw() const {
     imlib_context_set_image(image);
 
     // Draw all the bubbles
-    for (std::vector<Bubble*>::const_iterator b = bubbles.begin();  b != bubbles.end();  b++) {
-	(*b)->draw();
+    for (const auto& b : bubbles) {
+	b->draw();
     }
 }
