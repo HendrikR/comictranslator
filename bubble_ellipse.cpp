@@ -107,7 +107,7 @@ void BubbleEllipse::draw(Bubble::DrawMode mode) const {
     switch(mode) {
     case OUTLINE:
 	imlib_context_set_color(128,0,0,128);
-        imlib_image_fill_ellipse(centerx, centery, radiusx-1, radiusy-1);
+	imlib_image_draw_ellipse(centerx, centery, radiusx-1, radiusy-1);
 	break;
     case FILL:
 	bgcolor->use();
