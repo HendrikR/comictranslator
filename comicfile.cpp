@@ -184,7 +184,7 @@ void Comicfile::writeJSON(std::ostream& str) const {
     str << "  'font':{'id':'default', 'name':'ComicSansMSBold', 'size':8, 'colorr':0, 'colorg':0, 'colorb':0}\n";
     str << "  'bubbles':{\n";
     for (const Bubble* b : bubbles) {
-        b->writeXML( str );
+        b->writeJSON( str );
     }
     str << "}]}\n";
 }
@@ -207,7 +207,7 @@ void Comicfile::writeYAML(std::ostream& str) const {
     str << "   colorb: 0\n";
     str << "  bubbles:\n";
     for (const Bubble* b : bubbles) {
-        b->writeXML( str );
+        b->writeYAML( str );
     }
 }
 
