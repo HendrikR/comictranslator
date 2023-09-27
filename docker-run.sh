@@ -13,4 +13,4 @@ XSOCK=/tmp/.X11-unix
 XAUTH=/tmp/.docker.xauth
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 XFORWARDING_OPTS="--net=host -e DISPLAY=$DISPLAY -v $XSOCK -v $XAUTH:$HOME/.Xauthority"
-docker run -t -v .:/comictranslator $XFORWARDING_OPTS $IMAGE
+docker run -t -v .:/comictranslator $XFORWARDING_OPTS $@ $IMAGE

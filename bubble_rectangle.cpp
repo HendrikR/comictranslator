@@ -4,6 +4,7 @@
 //#include <math.h>
 #include <iostream>
 #include <stdio.h>
+#include "utils.hpp"
 
 BubbleRectangle::BubbleRectangle(int _x0, int _y0, int _width, int _height,
 				 CFont *_font, Color *_bgcolor)

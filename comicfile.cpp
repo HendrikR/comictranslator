@@ -95,7 +95,7 @@ static void XMLCALL xml_data(void *userData, const XML_Char *s, int len) {
 	while (s[0] == '\n' && len > 0) { s += 1; len -= 1; }
 	while (s[len-1] == '\n' && len > 0) { len -= 1; }
 	string text = string(s, len);
-	current_bubble->text += text;
+	current_bubble->setText(current_bubble->getText() + text);
     }
 }
 

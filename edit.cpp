@@ -56,20 +56,15 @@ public:
     // FLTK DRAW METHOD
     void draw() {
       if (comic != nullptr) comic->draw();
-      //return;
-      // TODO: this seems double work, and overwrites drawing happening elswhere (e.g. in event handlers)
-	size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
-	memcpy(img_display, img_original, img_size);
-        fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
-	for (unsigned i=0; i<comic->bubbles.size(); i++) {
-	    Bubble* bubble = comic->bubbles[i];
-	    bubble->draw(Bubble::FILL);
-	}
+      load_image();
+      size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
+      fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
     }
+
     void load_image() {
 	size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
-	img_original = (uchar*)malloc(img_size);
-	img_display = (uchar*)malloc(img_size);
+	if (img_original == nullptr) img_original = (uchar*)malloc(img_size);
+	if (img_display == nullptr) img_display = (uchar*)malloc(img_size);
 	DATA32* data = imlib_image_get_data();
 	for (int i=0; i<w()*h(); i+=1) {
 	    img_original[4*i+0] = (data[i]>>16) & 0xFF; // b
@@ -79,6 +74,7 @@ public:
 	}
 	memcpy(img_display, img_original, img_size);
     }
+
     MyBox(int x0, int y0)
 	: Fl_Box(x0,y0, imlib_image_get_width(), imlib_image_get_height()) {
         // Create GUI
@@ -97,15 +93,18 @@ public:
         bSet->callback(cb_setText, this);
         bSave->callback(cb_save, this);
     }
+
     ~MyBox() {
 	free(img_original);
 	free(img_display);
     }
+
     void setComic(Comicfile* _comic) {
 	comic = _comic;
 	load_image();
     }
-    Bubble* bubbleAt(int x, int y) {
+
+    Bubble* bubbleAt(int x, int y) const {
         for (Bubble* bubble : comic->bubbles ) {
 	    if (bubble->contains(x,y)) {
 		return bubble;
