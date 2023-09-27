@@ -131,7 +131,7 @@ public:
         return 1;
     }
 
-    int handle_click(int event, int cx, int cy) {
+    int handle_press(int event, int cx, int cy) {
 	Bubble* bubble = bubbleAt(cx, cy);
         switch (editmode) {
         case DM_HOVER:
@@ -151,22 +151,25 @@ public:
     }
 
     int handle_release(int event, int cx, int cy) {
-	std::cout << "release at " << cx <<", " << cy << std::endl;
         Bubble* bubble;
         switch(editmode) {
         case DM_HOVER: return 1;
         case DM_MOVE:
-            std::cout << "release move move" << std::endl;
             break;
         case DM_DRAW: {
             if (cx < oldx) std::swap(oldx, cx);
             if (cy < oldy) std::swap(oldy, cy);
+            assert(submode == DSM_RECT || submode == DSM_CIRC);
             if (submode == DSM_RECT) {
                 bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
             } else if (submode == DSM_CIRC) {
                 int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
                 bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
             }
+            comic->add(bubble);
+            bubble->draw(Bubble::FILL);
+            bubble->setText("noi");
+            current = bubble;
             redraw();
             break;
         }
@@ -174,16 +177,12 @@ public:
             std::cerr<< "Invalid shape creation\n";
             exit(-1);
 	}
-	comic->add(bubble);
-	bubble->draw(Bubble::FILL);
-	current = bubble;
 	editmode = DM_HOVER;
 	mainWindow->cursor(FL_CURSOR_DEFAULT);
         return 1;
     }
 
     int handle_drag(int event, int cx, int cy) {
-        //Bubble* bubble = bubbleAt(cx, cy);
         switch(editmode) {
         case DM_DRAW:
             if (submode == DSM_RECT) {
@@ -195,11 +194,13 @@ public:
                 fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
             }
             redraw();
+            break;
         case DM_HOVER:
             if (current == nullptr) return 1;
             current->setPosition(cx, cy);
             current->draw(Bubble::OUTLINE);
             redraw();
+            break;
         }
         return 1;
     }
@@ -210,7 +211,7 @@ public:
 
         switch(event) {
         case FL_MOVE:    return handle_hover  (event, cx, cy);
-        case FL_PUSH:    return handle_click  (event, cx, cy);
+        case FL_PUSH:    return handle_press  (event, cx, cy);
         case FL_RELEASE: return handle_release(event, cx, cy);
         case FL_DRAG:    return handle_drag   (event, cx, cy);
         case FL_SHORTCUT: // fallthrough
