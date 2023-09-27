@@ -55,7 +55,6 @@ public:
 
     // FLTK DRAW METHOD
     void draw() {
-      if (comic != nullptr) comic->draw();
       load_image();
       size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
       fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
@@ -115,14 +114,18 @@ public:
 
     int handle_hover(int event, int cx, int cy) {
         Bubble* bubble = bubbleAt(cx, cy);
-        if (bubble == nullptr) return 1;
+        if (bubble == nullptr) {
+            // todo: this still redraws every time the cursor moves
+            if (current != nullptr) current->draw(); // redraw last selected bubble
+            return 1;
+        }
         switch(editmode) {
         case DM_HOVER:
+            if (current != nullptr && current != bubble) current->draw(); // redraw last selected bubble
             text_bar->value(bubble->getText().c_str());
             current = bubble;
             bubble->draw(Bubble::OUTLINE);
-            load_image();
-            draw();
+            redraw();
             break;
         case DM_MOVE:
             // todo: should never happen
@@ -139,7 +142,7 @@ public:
                 text_bar->value(bubble->getText().c_str());
                 current = bubble;
                 bubble->draw(Bubble::OUTLINE);
-                draw();
+                redraw();
             }
 	    break;
         case DM_DRAW: // create rectangle/ellipse
@@ -196,6 +199,7 @@ public:
             redraw();
             break;
         case DM_HOVER:
+            current = bubbleAt(cx, cy);
             if (current == nullptr) return 1;
             current->setPosition(cx, cy);
             current->draw(Bubble::OUTLINE);
