@@ -119,10 +119,9 @@ public:
         if (bubble == nullptr) return 1;
         switch(editmode) {
         case DM_HOVER:
-            text_bar->value(bubble->text.c_str());
+            text_bar->value(bubble->getText().c_str());
             current = bubble;
             bubble->draw(Bubble::OUTLINE);
-            free(pixbuf); // TODO: this does not seem right ...
             load_image();
             draw();
             break;
@@ -138,7 +137,7 @@ public:
         switch (editmode) {
         case DM_HOVER:
             if (bubble != NULL) {
-                text_bar->value(bubble->text.c_str());
+                text_bar->value(bubble->getText().c_str());
                 current = bubble;
                 bubble->draw(Bubble::OUTLINE);
                 draw();

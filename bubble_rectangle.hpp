@@ -3,6 +3,7 @@
 #include "bubble.hpp"
 
 class BubbleRectangle : public Bubble {
+protected:
     int x0, y0;
     int width, height;
 public:

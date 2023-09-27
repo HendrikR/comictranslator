@@ -3,6 +3,7 @@
 #include "bubble.hpp"
 
 class BubbleEllipse : public Bubble {
+protected:
     int centerx, centery;
     int radiusx, radiusy;
 public:

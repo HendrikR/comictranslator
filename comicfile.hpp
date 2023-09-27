@@ -20,6 +20,7 @@ using std::string;
 
 class Comicfile {
     // TODO: add a "name" field to the comicfile, to write out to XML?
+private:
     string imgfile;
     string language;
     std::map<string, Color*> colors;
@@ -37,18 +38,18 @@ public:
 	return f;
     }
     Bubble* add(Bubble* b) {
-	bubbles.push_back(b);
+	bubbles.emplace_back(b);
 	return b;
     }
     void del(Bubble* b) {
         auto b_in = std::find(bubbles.begin(), bubbles.end(), b);
         if (b_in != bubbles.end()) bubbles.erase(b_in);
     }
-    Color*  getColor(string id) {
-	return colors[id];
+    Color*  getColor(string id) const {
+	return colors.at(id);
     }
-    CFont*  getFont(string id) {
-	return fonts[id];
+    CFont*  getFont(string id) const {
+	return fonts.at(id);
     }
     void writeImage() const;
     void writeXML(std::ostream& str) const;

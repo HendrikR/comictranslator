@@ -44,3 +44,7 @@ string Bubble::drawTextLine(int x0, int y0, string text, int maxwidth, float rel
 void Bubble::setText(string str) {
     text = str;
 }
+
+std::string Bubble::getText() const {
+    return text;
+}
