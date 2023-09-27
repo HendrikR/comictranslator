@@ -1,4 +1,5 @@
 #include "bubble_ellipse.hpp"
+#include "utils.hpp"
 #include <Imlib2.h>
 #include <cmath>
 #include <iostream>
@@ -69,8 +70,8 @@ void BubbleEllipse::writeImage() const {
     this->renderText();
 }
 
-void BubbleEllipse::writeXML(std::ostream& str) const {
-    str << "  <ellipse "
+void BubbleEllipse::writeXML(std::ostream& str, uint16_t indent) const {
+    str << utils::indent(indent) << "<ellipse "
 	<< "centerx=\""<< centerx <<"\" "
 	<< "centery=\""<< centery <<"\" "
 	<< "radiusx=\""<< radiusx <<"\" "
@@ -81,26 +82,26 @@ void BubbleEllipse::writeXML(std::ostream& str) const {
 	<< "</ellipse>\n";
 }
 
-void BubbleEllipse::writeJSON(std::ostream& str) const {
-    str << "   \"{ellipse\":{\n"
-	<< "     \"centerx\": " << centerx << ", "
-	<< "     \"centery\": " << centery << ", "
-	<< "     \"radiusx\": " << radiusx << ", "
-	<< "     \"radiusy\": " << radiusy << ", "
-	<< "     \"font\": \"default\", "
-	<< "     \"bgcolor\": \"default\", "
-	<< "     \"text\": \"" << text << "\"}},\n";
+void BubbleEllipse::writeJSON(std::ostream& str, uint16_t indent) const {
+    str << utils::indent(indent) << "\"{ellipse\":{\n" << utils::indent(indent)
+	<< "\"centerx\": " << centerx << ", "
+	<< "\"centery\": " << centery << ", "
+	<< "\"radiusx\": " << radiusx << ", "
+	<< "\"radiusy\": " << radiusy << ", "
+	<< "\"font\": \"default\", "
+	<< "\"bgcolor\": \"default\", "
+	<< "\"text\": \"" << text << "\"}},\n";
 }
 
-void BubbleEllipse::writeYAML(std::ostream& str) const {
-    str << "   - ellipse\n"
-	<< "      centerx: " << centerx << "\n"
-	<< "      centery: " << centery << "\n"
-	<< "      radiusx: " << radiusx << "\n"
-	<< "      radiusy: " << radiusy << "\n"
-	<< "      font: default\n"
-	<< "      bgcolor: default\n"
-	<< "      text: " << text << "\n";
+void BubbleEllipse::writeYAML(std::ostream& str, uint16_t indent) const {
+    str << utils::indent(indent) << "- ellipse\n"
+	<< utils::indent(indent) << "   centerx: " << centerx << "\n"
+	<< utils::indent(indent) << "   centery: " << centery << "\n"
+	<< utils::indent(indent) << "   radiusx: " << radiusx << "\n"
+	<< utils::indent(indent) << "   radiusy: " << radiusy << "\n"
+	<< utils::indent(indent) << "   font: default\n"
+	<< utils::indent(indent) << "   bgcolor: default\n"
+	<< utils::indent(indent) << "   text: " << text << "\n";
 }
 
 void BubbleEllipse::draw(Bubble::DrawMode mode) const {

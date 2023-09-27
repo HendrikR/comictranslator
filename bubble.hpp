@@ -21,9 +21,9 @@ public:
 	: text(_text), font(_font), bgcolor(_bgcolor)
 	{}
     virtual void writeImage() const = 0;
-    virtual void writeXML(std::ostream& str) const = 0;
-    virtual void writeJSON(std::ostream& str) const = 0;
-    virtual void writeYAML(std::ostream& str) const = 0;
+    virtual void writeXML(std::ostream& str, uint16_t indent = 0) const = 0;
+    virtual void writeJSON(std::ostream& str, uint16_t indent = 0) const = 0;
+    virtual void writeYAML(std::ostream& str, uint16_t indent = 0) const = 0;
     virtual void draw(DrawMode mode = ALL) const = 0;
     virtual bool contains(int x, int y) const = 0;
     virtual int renderText() const = 0;

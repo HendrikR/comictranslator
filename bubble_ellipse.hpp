@@ -10,9 +10,9 @@ public:
     BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
 		  CFont *_font, Color *_bgcolor);
     virtual void writeImage() const override;
-    virtual void writeXML(std::ostream& str) const override;
-    virtual void writeJSON(std::ostream& str) const override;
-    virtual void writeYAML(std::ostream& str) const override;
+    virtual void writeXML(std::ostream& str, uint16_t indent = 0) const override;
+    virtual void writeJSON(std::ostream& str, uint16_t indent = 2) const override;
+    virtual void writeYAML(std::ostream& str, uint16_t indent = 2) const override;
     virtual void draw(DrawMode mode = ALL) const override;
     virtual bool contains(int x, int y) const override;
     virtual int renderText() const override;

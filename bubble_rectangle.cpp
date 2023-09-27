@@ -47,8 +47,8 @@ void BubbleRectangle::writeImage() const {
     this->renderText();
  }
 
-void BubbleRectangle::writeXML(std::ostream& str) const {
-    str << "<rectangle "
+void BubbleRectangle::writeXML(std::ostream& str, uint16_t indent) const {
+    str << utils::indent(indent) << "<rectangle "
 	<< "x0=\""<< x0 <<"\" "
 	<< "y0=\""<< y0 <<"\" "
 	<< "width=\""<< width <<"\" "
@@ -59,26 +59,26 @@ void BubbleRectangle::writeXML(std::ostream& str) const {
 	<< "</rectangle>\n";
 }
 
-void BubbleRectangle::writeJSON(std::ostream& str) const {
-    str << "   \"{rectangle\":{\n"
-	<< "     \"x0\": " << x0 << ", "
-	<< "     \"y0\": " << y0 << ", "
-	<< "     \"width\": " << width << ", "
-	<< "     \"height\": " << height << ", "
-	<< "     \"font\": \"default\", "
-	<< "     \"bgcolor\": \"default\", "
-	<< "     \"text\": \"" << text << "\"}},\n";
+void BubbleRectangle::writeJSON(std::ostream& str, uint16_t indent) const {
+    str << utils::indent(indent) << "\"{rectangle\":{\n" << utils::indent(indent)
+	<< "\"x0\": " << x0 << ", "
+	<< "\"y0\": " << y0 << ", "
+	<< "\"width\": " << width << ", "
+	<< "\"height\": " << height << ", "
+	<< "\"font\": \"default\", "
+	<< "\"bgcolor\": \"default\", "
+	<< "\"text\": \"" << text << "\"}},\n";
 }
 
-void BubbleRectangle::writeYAML(std::ostream& str) const {
-    str << "   - rectangle\n"
-	<< "      x0: " << x0 <<"\n"
-	<< "      y0: " << y0 <<"\n"
-	<< "      width: " << width <<"\n"
-	<< "      height: " << height <<"\n"
-	<< "      font: default\n"
-	<< "      bgcolor: default\n"
-	<< "      text: " << text << "\n";
+void BubbleRectangle::writeYAML(std::ostream& str, uint16_t indent) const {
+    str << utils::indent(indent) << "- rectangle\n"
+	<< utils::indent(indent) << "   x0: " << x0 <<"\n"
+	<< utils::indent(indent) << "   y0: " << y0 <<"\n"
+	<< utils::indent(indent) << "   width: " << width <<"\n"
+	<< utils::indent(indent) << "   height: " << height <<"\n"
+	<< utils::indent(indent) << "   font: default\n"
+	<< utils::indent(indent) << "   bgcolor: default\n"
+	<< utils::indent(indent) << "   text: " << text << "\n";
 }
 
 void BubbleRectangle::draw(Bubble::DrawMode mode) const {
