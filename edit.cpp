@@ -129,9 +129,10 @@ public:
             bubble->draw(Bubble::OUTLINE);
             redraw();
             break;
-        case DM_MOVE:
-            // todo: should never happen
+        case DM_DRAW:
             break;
+        default:
+            throw std::runtime_error("invalid editmode on hover");
         }
         return 1;
     }
@@ -151,6 +152,8 @@ public:
             oldx = cx;
             oldy = cy;
             break;
+        default:
+            throw std::runtime_error("invalid editmode on click");
         }
         return 1;
     }
@@ -179,8 +182,7 @@ public:
             break;
         }
         default:
-            std::cerr<< "Invalid shape creation\n";
-            exit(-1);
+            throw std::runtime_error("Invalid shape creation");
 	}
 	editmode = DM_HOVER;
 	mainWindow->cursor(FL_CURSOR_DEFAULT);
