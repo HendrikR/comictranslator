@@ -64,85 +64,97 @@ bool isMonotonous(vector<int> hullIdx) {
     return true;
 }
 
-void checkEllipse(cv::Mat dst, vector<vector<Point> > contours, vector<RotatedRect> &ellipses, float tolerance, int min_size, int max_size) {
-    for(const auto& contour : contours) {
-	// calculate the area of the original contour and its convex hull.
-	vector<Point> hull;
-	vector<int> hullIdx;
-	vector<Vec4i> hullError;
-	convexHull(contour, hull);
-	convexHull(contour, hullIdx);
-	// convexityDefects cannot work with non-monotonous hulls -- skip them.
-	if (! isMonotonous(hullIdx)) continue;
-	cv::convexityDefects(contour, hullIdx, hullError);
-	double contour_area = fabs(contourArea(contour));
-	double hull_area = fabs(contourArea(hull));
-	if (hull_area < min_size*min_size) continue;
-	// check if the contour is roughly convex (i.e. a potential ellipse).
-	if (fabs(contour_area - hull_area) < contour_area*tolerance) {
-	    // okay, it's covex enough, we are stupid and pretend it's an ellipse, then.
-	    if (contour.size() >= 5) {
-		RotatedRect ebox = fitEllipse(contour);
-		// We're only interested in Axis-parallel Ellipses.
-		// This rejects ellipsis-like objects which are no speech bubbles.
-		if (fabs(ebox.angle-90) < 5 || fabs(ebox.angle-270) < 5) {
-		    ellipses.push_back(ebox);
-		}
-	    }
-	} else { // Shape is quite concave. Subdivide contour and repeat the algorithm.
-	    // subdivide along convex hull points
-	    // Punkt auf der Kontur finden, der (über alle Lapsi) den größten Abstand zur konvexen Hülle hat.
-	    int maxIdx, maxError = 0;
-	    vector<Point> nonHull;
-	    for(uint16_t i=0; i<hullError.size(); i++) {
-		//circle(dst, contour[hullError[i][2]], 3, Scalar(hullError[i][3]/4, 0, 0));
-		if (hullError[i][3] > maxError) {
-		    maxError = hullError[i][3];
-		    maxIdx   = hullError[i][2];
-		}
-	    }
-	    // Punkt auf der Kontur finden, der
-	    // (a) innerhalb eines Lapsus den max. Abstand zur konv. Hülle hat
-	    // (b) am dichtesten an Punkt contour[maxIdx] liegt.
-	    if (hullError.size() < 2) continue;
-	    int minIdx, minError = INT_MAX;
-	    for(uint16_t i=0; i<hullError.size(); i++) {
-		if (hullError[i][2] == maxIdx) continue;
-		int d = cvRound(dist(contour[hullError[i][2]], contour[maxIdx])*256);
-		if (d < minError) {
-		    minError = d;
-		    minIdx   = hullError[i][2];
-		}
-	    }
-	    circle(dst, contour[maxIdx], 3, Scalar(0, 255, 255));
-	    circle(dst, contour[minIdx], 3, Scalar(0, 255, 0));
-	    // Kontur aufspalten an den oben ermittelten Punkten
-	    vector<Point> c1, c2;
-	    if (maxIdx > minIdx) {
-		int temp = maxIdx;
-		maxIdx   = minIdx;
-		minIdx   = temp;
-	    }
-	    for (uint16_t i=0; i<contour.size(); i++) {
-		if (maxIdx < i and i <= minIdx) c2.push_back(contour[i]);
-		else                            c1.push_back(contour[i]);
-	    }
-	    vector<vector<Point> > hullsa;
-	    if(c1.size() > 3) hullsa.push_back(c1);
-	    if(c2.size() > 3) hullsa.push_back(c2);
-	    if (hullsa.size() > 0) drawContours(dst, hullsa, -1, Scalar(0,255,255));
-	    if (hullsa.size() > 0) checkEllipse(dst, hullsa, ellipses, tolerance, min_size, max_size);
-	}
-	vector<vector<Point> > hullsb;
-	hullsb.push_back(hull);
-	drawContours(dst, hullsb, -1, Scalar(255,0,255));
+void checkEllipse(cv::Mat dst, vector<Point> contour, vector<RotatedRect> &bubbles, float tolerance, int min_size, int max_size) {
+    // calculate the area of the original contour and its convex hull.
+    vector<Point> hull;
+    vector<int> hullIdx;
+    vector<Vec4i> hullError;
+    convexHull(contour, hull);
+    convexHull(contour, hullIdx);
+    // convexityDefects cannot work with non-monotonous hulls -- skip them.
+    if (! isMonotonous(hullIdx)) return;
+    cv::convexityDefects(contour, hullIdx, hullError);
+    double contour_area = fabs(contourArea(contour));
+    double hull_area = fabs(contourArea(hull));
+    if (hull_area < min_size*min_size) return;
+    // check if the contour is roughly convex (i.e. a potential ellipse).
+    if (fabs(contour_area - hull_area) < contour_area*tolerance) {
+        // okay, it's covex enough, we are stupid and pretend it's an ellipse, then.
+        if (contour.size() >= 5) {
+            RotatedRect ebox = fitEllipse(contour);
+            // We're only interested in Axis-parallel Ellipses.
+            // This rejects ellipsis-like objects which are no speech bubbles.
+            if (fabs(ebox.angle-90) < 5 || fabs(ebox.angle-270) < 5) {
+                bubbles.push_back(ebox);
+            }
+        }
+    } else { // Shape is quite concave. Subdivide contour and repeat the algorithm.
+        // subdivide along convex hull points
+        // TODO is this part really working?
+        // Punkt auf der Kontur finden, der (über alle Lapsi) den größten Abstand zur konvexen Hülle hat.
+        int maxIdx, maxError = 0;
+        vector<Point> nonHull;
+        for (uint16_t i=0; i<hullError.size(); i++) {
+            //circle(dst, contour[hullError[i][2]], 3, Scalar(hullError[i][3]/4, 0, 0));
+            if (hullError[i][3] > maxError) {
+                maxError = hullError[i][3];
+                maxIdx   = hullError[i][2];
+            }
+        }
+        // Punkt auf der Kontur finden, der
+        // (a) innerhalb eines Lapsus den max. Abstand zur konv. Hülle hat
+        // (b) am dichtesten an Punkt contour[maxIdx] liegt.
+        if (hullError.size() < 2) return;
+        int minIdx, minError = INT_MAX;
+        for(uint16_t i=0; i<hullError.size(); i++) {
+            if (hullError[i][2] == maxIdx) continue;
+            int d = cvRound(dist(contour[hullError[i][2]], contour[maxIdx])*256);
+            if (d < minError) {
+                minError = d;
+                minIdx   = hullError[i][2];
+            }
+        }
+        circle(dst, contour[maxIdx], 3, Scalar(0, 255, 255));
+        circle(dst, contour[minIdx], 3, Scalar(0, 255, 0));
+        // Kontur aufspalten an den oben ermittelten Punkten
+        vector<Point> c1, c2;
+        if (maxIdx > minIdx) {
+            int temp = maxIdx;
+            maxIdx   = minIdx;
+            minIdx   = temp;
+        }
+        for (uint16_t i=0; i<contour.size(); i++) {
+            if (maxIdx < i and i <= minIdx) c2.push_back(contour[i]);
+            else                            c1.push_back(contour[i]);
+        }
+        vector<vector<Point> > hullsa;
+        if(c1.size() > 3) hullsa.push_back(c1);
+        if(c2.size() > 3) hullsa.push_back(c2);
+        for (const auto& subcontour : hullsa) {
+            //drawContours(dst, hullsa, -1, Scalar(0,255,255));
+            checkEllipse(dst, subcontour, bubbles, tolerance, min_size, max_size);
+        }
     }
+    vector<vector<Point> > hullsb;
+    hullsb.push_back(hull);
+    drawContours(dst, hullsb, -1, Scalar(255,0,255));
 }
 
-void findEllipses(cv::Mat src, cv::Mat dst, vector<RotatedRect> &ellipses, float tolerance=0.0, int min_size=30, int max_size=-1) {
+void checkRectangle(cv::Mat dst, vector<Point> contour, vector<RotatedRect> &bubbles, float tolerance, int min_size, int max_size) {
+    // TODO
+}
+
+void hasText(cv::Mat src, vector<RotatedRect> shapes) {
+    // TODO
+}
+
+void findBubbles(cv::Mat src, cv::Mat dst, vector<RotatedRect> &bubbles, float tolerance=0.0, int min_size=30, int max_size=-1) {
     vector<vector<Point> > contours;
     findContours(src, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
-    checkEllipse(dst, contours, ellipses, tolerance, min_size, max_size);
+    for (const auto& contour : contours) {
+        checkEllipse(dst, contour, bubbles, 0.05, min_size, max_size);
+        checkRectangle(dst, contour, bubbles, tolerance, min_size, max_size);
+    }
 }
 
 // Sortierfunktion für Ellipsen
@@ -157,7 +169,7 @@ bool smaller_by_coords(const RotatedRect &a, const RotatedRect &b) {
 int main( int ARGC, char** ARGV )
 {
     cv::Mat src;
-    vector<RotatedRect> ellipses;
+    vector<RotatedRect> bubbles;
 
     if(ARGC == 2) {
 	src = cv::imread(ARGV[1], 0);
@@ -183,8 +195,8 @@ int main( int ARGC, char** ARGV )
     dilate(src, src, Mat(), Point(-1,-1), 2);
     //cv::imwrite("debug.png", src);
     // Und nach achsenparallelen Ellipsen suchen.
-    findEllipses(src, dst, ellipses, 0.03);
-    cv::imwrite("debug.png", dst);
+    findBubbles(src, dst, bubbles, 0.03);
+    //cv::imwrite("debug.png", dst);
 
     // TODO: use Comicfile::writeXML(ostream& str) instead
     std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
@@ -192,17 +204,17 @@ int main( int ARGC, char** ARGV )
     std::cout << "<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n";
     std::cout << "<font id=\"default\" name=\"fonts/LiberationSans-Bold.ttf\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
 
-    std::sort(ellipses.begin(), ellipses.end(), smaller_by_coords);
-    for(uint16_t i = 0; i < ellipses.size(); i++) {
-	const RotatedRect& e = ellipses[i];
+    std::sort(bubbles.begin(), bubbles.end(), smaller_by_coords);
+    unsigned i = 0;
+    for (const RotatedRect& e: bubbles) {
 	ellipse(dst, e, Scalar(255,0,0), 2);
 	std::cout << "<ellipse"
                   << " centerx=\""<< cvRound(e.center.x) << '"'
                   << " centery=\""<< cvRound(e.center.y) << '"'
                   << " radiusx=\""<< cvRound(e.size.height/2 - 1) << '"'
-                  << " radiusy=\""<< cvRound(e.size.height/2 - 1) << '"'
+                  << " radiusy=\""<< cvRound(e.size.width/2 - 1) << '"'
                   << " font=\"default\" bgcolor=\"default\">"
-                  << "Text"<< std::right << std::setfill('0') << std::setw(2) << i << "</ellipse>\n";
+                  << "Text"<< std::right << std::setfill('0') << std::setw(2) << i++ << "</ellipse>\n";
     }
     std::cout << "</comic>\n";
 }
