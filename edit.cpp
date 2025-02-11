@@ -56,7 +56,6 @@ public:
     // FLTK DRAW METHOD
     void draw() {
       load_image();
-      size_t img_size = imlib_image_get_width() * imlib_image_get_height() * 4;
       fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
     }
 
@@ -65,7 +64,8 @@ public:
 	if (img_original == nullptr) img_original = (uchar*)malloc(img_size);
 	if (img_display == nullptr) img_display = (uchar*)malloc(img_size);
 	DATA32* data = imlib_image_get_data();
-	for (int i=0; i<w()*h(); i+=1) {
+        // TODO: assumes that image and box size are always the same!
+	for (unsigned i=0; i<w()*h(); ++i) {
 	    img_original[4*i+0] = (data[i]>>16) & 0xFF; // b
 	    img_original[4*i+1] = (data[i]>> 8) & 0xFF; // g
 	    img_original[4*i+2] = (data[i]>> 0) & 0xFF; // r
@@ -75,7 +75,9 @@ public:
     }
 
     MyBox(int x0, int y0)
-	: Fl_Box(x0,y0, imlib_image_get_width(), imlib_image_get_height()) {
+	: Fl_Box(x0,y0, imlib_image_get_width(), imlib_image_get_height()),
+          img_original(nullptr), img_display(nullptr)
+        {
         // Create GUI
         auto bRect = new Fl_Button( 0,0, 40,30, "rect");
         auto bCirc = new Fl_Button(40,0, 40,30, "circ");
