@@ -8,27 +8,17 @@ const uint32_t BUFSIZE=0x10000;
 Comicfile* comic;
 Bubble* current_bubble;
 
-int arg_i(std::map<string, string> &args, string name, int _default) {
-    if (args.find(name) != args.end()) {
-	return atoi(args[name].c_str());
-    } else {
-	return _default;
-    }
+int xarg_i(std::map<string, string> &args, const string& name, int _default=0) {
+    return args.find(name) != args.end() ? atoi(args[name].c_str()) : _default;
+}
+float xarg_f(std::map<string, string> &args, const string& name, float _default=0.0) {
+    return args.find(name) != args.end() ? atof(args[name].c_str()) : _default;
+}
+string xarg_s(std::map<string, string> &args, const string& name, string _default="") {
+    return args.find(name) != args.end() ? args[name] : _default;
 }
 
-float arg_f(std::map<string, string> &args, string name, float _default) {
-    if (args.find(name) != args.end()) {
-	return atof(args[name].c_str());
-    } else {
-	return _default;
-    }
 }
-string arg_s(std::map<string, string> &args, string name, string _default) {
-    if (args.find(name) != args.end()) {
-	return args[name];
-    } else {
-	return _default;
-    }
 }
 
 static void XMLCALL xml_start(void *data, const char *_elem, const char **attr) {
@@ -40,37 +30,37 @@ static void XMLCALL xml_start(void *data, const char *_elem, const char **attr) 
     }
 
     if (elem == "ellipse") {
-	CFont* font = comic->getFont(arg_s(args, "font", "default"));
-	Color* bgcolor = comic->getColor(arg_s(args, "bgcolor", "default"));
-	int centerx = arg_i(args, "centerx"),  centery = arg_i(args, "centery");
-	int radiusx = arg_i(args, "radiusx"),  radiusy = arg_i(args, "radiusy");
+	CFont* font = comic->getFont(xarg_s(args, "font", "default"));
+	Color* bgcolor = comic->getColor(xarg_s(args, "bgcolor", "default"));
+	int centerx = xarg_i(args, "centerx"),  centery = xarg_i(args, "centery");
+	int radiusx = xarg_i(args, "radiusx"),  radiusy = xarg_i(args, "radiusy");
 	current_bubble = new BubbleEllipse(centerx, centery, radiusx, radiusy,
 					   font, bgcolor);
     } else if (elem == "rectangle") {
-	CFont* font = comic->getFont(arg_s(args, "font", "default"));
-	Color* bgcolor = comic->getColor(arg_s(args, "bgcolor", "default"));
-	int x0    = arg_i(args, "x0"),    y0 = arg_i(args, "y0");
-	int width = arg_i(args, "width"), height = arg_i(args, "height");
+	CFont* font = comic->getFont(xarg_s(args, "font", "default"));
+	Color* bgcolor = comic->getColor(xarg_s(args, "bgcolor", "default"));
+	int x0    = xarg_i(args, "x0"),    y0 = xarg_i(args, "y0");
+	int width = xarg_i(args, "width"), height = xarg_i(args, "height");
 	current_bubble = new BubbleRectangle(x0, y0, width, height,
 					     font, bgcolor);
     } else if (elem == "font") {
-	comic->add(arg_s(args, "id"),
-		   new CFont(arg_s(args, "name"),
-			     arg_f(args, "size", 8.0),
-			     Color(arg_i(args, "colorr", 0),
-				   arg_i(args, "colorg", 0),
-				   arg_i(args, "colorb", 0),
-				   arg_i(args, "colora", 255)
+	comic->add(xarg_s(args, "id"),
+		   new CFont(xarg_s(args, "name"),
+			     xarg_f(args, "size", 8.0),
+			     Color(xarg_i(args, "colorr", 0),
+				   xarg_i(args, "colorg", 0),
+				   xarg_i(args, "colorb", 0),
+				   xarg_i(args, "colora", 255)
 				 )));
     } else if (elem == "bgcolor") {
-	comic->add(arg_s(args, "id"),
-		   new Color(arg_i(args, "r", 255),
-			     arg_i(args, "g", 255),
-			     arg_i(args, "b", 255),
-			     arg_i(args, "a", 255)));
+	comic->add(xarg_s(args, "id"),
+		   new Color(xarg_i(args, "r", 255),
+			     xarg_i(args, "g", 255),
+			     xarg_i(args, "b", 255),
+			     xarg_i(args, "a", 255)));
     } else if (elem == "comic") {
-	comic = new Comicfile(arg_s(args, "name"),
-			      arg_s(args, "lang"));
+	comic = new Comicfile(xarg_s(args, "name"),
+			      xarg_s(args, "lang"));
     }
 }
 
@@ -99,13 +89,26 @@ static void XMLCALL xml_data(void *userData, const XML_Char *s, int len) {
     }
 }
 
-Comicfile* parse_XML(char* filename) {
-    // Open & check XML file
+
+Comicfile* parse_file(const string& filename) {
+    // Open & check file
     std::ifstream file_in(filename);
     if (!file_in.good()) {
-	std::cerr<< "Error loading XML file "<< filename <<"\n";
-	exit(-1);
+        std::cerr<< "Error loading XML file "<< filename <<"\n";
+        exit(-1);
     }
+    string extension = filename.substr(filename.find_last_of(".") + 1);
+    for (auto& c : extension) c = tolower(c);
+    if (extension == "xml") {
+        Comicfile* ret = Comicfile::readXML(file_in);
+        file_in.close();
+        return ret;
+    } else if (extension == "json") {
+        return Comicfile::readJSON(file_in);
+    }
+}
+
+Comicfile* Comicfile::readXML(std::istream& file_in) {
     // Create Parser
     XML_Parser parser = XML_ParserCreate(NULL);
     if (! parser) {
@@ -126,7 +129,6 @@ Comicfile* parse_XML(char* filename) {
 	    exit(-1);
 	}
     }
-    file_in.close();
     XML_ParserFree(parser);
     return comic;
 }
