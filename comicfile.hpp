@@ -52,6 +52,9 @@ public:
 	return fonts.at(id);
     }
     void writeImage() const;
+    static Comicfile* readXML(std::istream& str);
+    static Comicfile* readJSON(std::istream& str);
+    static Comicfile* readYAML(std::istream& str);
     void writeXML(std::ostream& str) const;
     void writeJSON(std::ostream& str) const;
     void writeYAML(std::ostream& str) const;
@@ -60,7 +63,7 @@ public:
 };
 
 
-Comicfile* parse_XML(char* filename);
+Comicfile* parse_file(const string& filename);
 int    arg_i(std::map<string, string> &args, string name, int    _default=0);
 float  arg_f(std::map<string, string> &args, string name, float  _default=0.0);
 string arg_s(std::map<string, string> &args, string name, string _default="");

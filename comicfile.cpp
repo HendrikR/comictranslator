@@ -1,7 +1,9 @@
 #include "comicfile.hpp"
 #include <expat.h>
 #include <fstream>
+#include <sstream>
 #include <stdint.h>
+#include "jute/jute.h"
 
 const uint32_t BUFSIZE=0x10000;
 
@@ -18,7 +20,14 @@ string xarg_s(std::map<string, string> &args, const string& name, string _defaul
     return args.find(name) != args.end() ? args[name] : _default;
 }
 
+int jarg_i(jute::jValue obj, string name, int _default=0) {
+    return obj[name].get_type() != jute::JUNKNOWN ? obj[name].as_int() : _default;
 }
+int jarg_d(jute::jValue obj, string name, double _default=0.0) {
+    return obj[name].get_type() != jute::JUNKNOWN ? obj[name].as_double() : _default;
+}
+string jarg_s(jute::jValue obj, string name, string _default="") {
+    return obj[name].get_type() != jute::JUNKNOWN ? obj[name].as_string() : _default;
 }
 
 static void XMLCALL xml_start(void *data, const char *_elem, const char **attr) {
@@ -133,6 +142,61 @@ Comicfile* Comicfile::readXML(std::istream& file_in) {
     return comic;
 }
 
+Comicfile* Comicfile::readJSON(std::istream& file_in) {
+    Comicfile* cf = new Comicfile("", "");
+    std::stringstream file_sstream;
+    file_sstream << file_in.rdbuf();
+    jute::jValue json = jute::parser::parse(file_sstream.str());
+    //assert(json.get_type() == jute::JOBJECT);
+    // todo check existence of comicfile and bubbles
+    cf->imgfile = jarg_s(json["comicfile"], "name", "");
+    cf->language = jarg_s(json["comicfile"], "lang", "TODO");
+
+    jute::jValue j_fonts = json["comicfile"]["fonts"];
+    for (size_t i=0; i<j_fonts.size(); ++i) {
+        cf->add(jarg_s(j_fonts[i], "id"),
+                new CFont(jarg_s(j_fonts[i], "name"),
+                          jarg_d(j_fonts[i], "size", 8.0),
+                          Color(jarg_i(j_fonts[i], "colorr", 0),
+                                jarg_i(j_fonts[i], "colorg", 0),
+                                jarg_i(j_fonts[i], "colorb", 0),
+                                jarg_i(j_fonts[i], "colora", 255))));
+    }
+
+    jute::jValue j_bgcolors = json["comicfile"]["bgcolors"];
+    for (size_t i=0; i<j_bgcolors.size(); ++i) {
+        cf->add(jarg_s(j_bgcolors[i], "id"),
+                   new Color(jarg_i(j_bgcolors[i], "r", 255),
+                             jarg_i(j_bgcolors[i], "g", 255),
+                             jarg_i(j_bgcolors[i], "b", 255),
+                             jarg_i(j_bgcolors[i], "a", 255)));
+    }
+
+    jute::jValue j_bubbles = json["comicfile"]["bubbles"];
+    for (size_t i=0; i<j_bubbles.size(); ++i) {
+        jute::jValue j_bubble = j_bubbles[i];
+        // TODO: set to default if not present
+        Bubble* bubble;
+        CFont* font = cf->getFont(jarg_s(j_bubble, "font", "default"));
+        Color* bgcolor = cf->getColor(jarg_s(j_bubble, "bgcolor", "default"));
+        const std::string shape = jarg_s(j_bubble, "shape");
+        if (shape == "ellipse") {
+            int centerx = jarg_i(j_bubble, "centerx"),  centery = jarg_i(j_bubble, "centery");
+            int radiusx = jarg_i(j_bubble, "radiusx"),  radiusy = jarg_i(j_bubble, "radiusy");
+            bubble = new BubbleEllipse(centerx, centery, radiusx, radiusy, font, bgcolor);
+        } else if (shape == "rectangle") {
+            int x0    = jarg_i(j_bubble, "x0"),    y0 = jarg_i(j_bubble, "y0");
+            int width = jarg_i(j_bubble, "width"), height = jarg_i(j_bubble, "height");
+            bubble = new BubbleRectangle(x0, y0, width, height, font, bgcolor);
+        } else {
+            std::cerr<< "Unknown shape: '"<< shape <<"'\n";
+            exit(-1);
+        }
+	bubble->setText(jarg_s(j_bubble, "text"));
+        cf->bubbles.push_back(bubble);
+    }
+    return cf;
+}
 
 void Comicfile::writeImage() const {
     // Load the original image

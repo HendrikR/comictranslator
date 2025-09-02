@@ -275,7 +275,7 @@ int main(int argc, char **argv) {
     Comicfile::addFontpath("./fonts");
     Comicfile* comic;
     if(argc == 2) {
-	comic = parse_XML(argv[1]);
+	comic = parse_file(argv[1]);
     } else {
 	std::cerr<< "usage: "<< argv[0] <<" <XML file>\n";
 	exit(-1);
