@@ -8,7 +8,7 @@
 #include <FL/Fl_BMP_Image.H>
 #include <FL/Fl_GIF_Image.H>
 #include <vector>
-
+#include <cmath>
 
 
 
