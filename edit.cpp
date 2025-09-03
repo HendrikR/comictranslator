@@ -48,6 +48,7 @@ public:
     uchar* img_original;              // unchanged image buffer
     uchar* img_display;              // displayed image buffer
     Comicfile* comic;
+    string filename_in;
     Fl_Input* text_bar;
     EditMode editmode = DM_HOVER;
     EditSubMode submode = DSM_RECT;
@@ -270,25 +271,33 @@ void cb_setText(Fl_Widget* widget, void* data) {
 void cb_save(Fl_Widget* widget, void* data) {
     MyBox* my_box = static_cast<MyBox*>(data);
     assert( my_box != nullptr );
+
+    Comicfile* comic = my_box->comic;
+
+    // Derive filename and format for output file
+    string filename_ext = my_box->filename_in.substr(my_box->filename_in.rfind('.')+1);
+    string filename_out = my_box->filename_in.substr(0, my_box->filename_in.rfind('.')+1) + comic->getLanguage() + "." + filename_ext;
+
     // todo: write to file instead of cout
-    my_box->comic->writeXML(std::cout);
+    std::cout << "write file to " << filename_out << std::endl;
+    //my_box->comic->writeXML(std::cout);
 }
 
 int main(int argc, char **argv) {
     Comicfile::addFontpath("./fonts");
     Comicfile* comic;
-    if(argc == 2) {
-	comic = parse_file(argv[1]);
-    } else {
-	std::cerr<< "usage: "<< argv[0] <<" <XML file>\n";
+    if (argc < 2) {
+	std::cerr<< "usage: "<< argv[0] <<" <XML/JSON file>\n";
 	exit(-1);
     }
+    comic = parse_file(argv[1]);
     comic->draw();
 
     // Create GUI
     mainWindow = new Fl_Window(imlib_image_get_width(), imlib_image_get_height()+30);
     MyBox* box = new MyBox(0,30);
     box->setComic(comic);
+    box->filename_in = argv[1];
 
     mainWindow->end();
     mainWindow->show();
