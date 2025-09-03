@@ -159,26 +159,29 @@ public:
     }
 
     int handle_release(int event, int cx, int cy) {
-        Bubble* bubble;
         switch(editmode) {
-        case DM_HOVER: return 1;
+        case DM_HOVER:
+            assert(current != nullptr);
+            current->draw(Bubble::ALL);
+            return 1;
         case DM_MOVE:
+            assert(current != nullptr);
+            current->draw(Bubble::ALL);
             break;
         case DM_DRAW: {
             if (cx < oldx) std::swap(oldx, cx);
             if (cy < oldy) std::swap(oldy, cy);
             assert(submode == DSM_RECT || submode == DSM_CIRC);
             if (submode == DSM_RECT) {
-                bubble = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
+                current = new BubbleRectangle(oldx, oldy, cx-oldx, cy-oldy, comic->getFont("default"), comic->getColor("default"));
             } else if (submode == DSM_CIRC) {
                 int radx = (cx-oldx)/2,  rady = (cy-oldy)/2;
-                bubble = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
+                current = new BubbleEllipse(oldx+radx, oldy+rady, radx, rady, comic->getFont("default"), comic->getColor("default"));
             }
-            comic->add(bubble);
-            bubble->draw(Bubble::FILL);
-            bubble->setText("noi");
-            current = bubble;
-            redraw();
+            comic->add(current);
+            current->setText("noi");
+            current->draw(Bubble::ALL);
+            //redraw();
             break;
         }
         default:

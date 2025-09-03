@@ -143,6 +143,7 @@ Comicfile* Comicfile::readXML(std::istream& file_in) {
 }
 
 Comicfile* Comicfile::readJSON(std::istream& file_in) {
+    // TODO: json files can only have one comic per file, xml files can have more. Which is more sensible?
     Comicfile* cf = new Comicfile("", "");
     std::stringstream file_sstream;
     file_sstream << file_in.rdbuf();
