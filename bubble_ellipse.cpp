@@ -83,14 +83,14 @@ void BubbleEllipse::writeXML(std::ostream& str, uint16_t indent) const {
 }
 
 void BubbleEllipse::writeJSON(std::ostream& str, uint16_t indent) const {
-    str << utils::indent(indent) << "\"{ellipse\":{\n" << utils::indent(indent)
+    str << utils::indent(indent) << "{\"shape\":\"ellipse\", "
 	<< "\"centerx\": " << centerx << ", "
 	<< "\"centery\": " << centery << ", "
 	<< "\"radiusx\": " << radiusx << ", "
 	<< "\"radiusy\": " << radiusy << ", "
 	<< "\"font\": \"default\", "
 	<< "\"bgcolor\": \"default\", "
-	<< "\"text\": \"" << text << "\"}},\n";
+	<< "\"text\": \"" << text << "\"}";
 }
 
 void BubbleEllipse::writeYAML(std::ostream& str, uint16_t indent) const {

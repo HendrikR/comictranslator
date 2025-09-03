@@ -103,17 +103,18 @@ Comicfile* parse_file(const string& filename) {
     // Open & check file
     std::ifstream file_in(filename);
     if (!file_in.good()) {
-        std::cerr<< "Error loading XML file "<< filename <<"\n";
+        std::cerr<< "Error loading XML file "<< filename << std::endl;
         exit(-1);
     }
     string extension = filename.substr(filename.find_last_of(".") + 1);
     for (auto& c : extension) c = tolower(c);
     if (extension == "xml") {
-        Comicfile* ret = Comicfile::readXML(file_in);
-        file_in.close();
-        return ret;
+        return Comicfile::readXML(file_in);
     } else if (extension == "json") {
         return Comicfile::readJSON(file_in);
+    } else {
+        std::cerr<< "Unknown file format: "<< extension << std::endl;
+        exit(-1);
     }
 }
 
@@ -151,7 +152,7 @@ Comicfile* Comicfile::readJSON(std::istream& file_in) {
     //assert(json.get_type() == jute::JOBJECT);
     // todo check existence of comicfile and bubbles
     cf->imgfile = jarg_s(json["comicfile"], "name", "");
-    cf->language = jarg_s(json["comicfile"], "lang", "TODO");
+    cf->language = jarg_s(json["comicfile"], "lang", "en");
 
     jute::jValue j_fonts = json["comicfile"]["fonts"];
     for (size_t i=0; i<j_fonts.size(); ++i) {
@@ -233,6 +234,7 @@ void Comicfile::writeImage() const {
 void Comicfile::writeXML(std::ostream& str) const {
     str << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
     str << "<comic name=\"" << imgfile << "\" lang=\"de\">\n";
+    // TODO: do this properly with comicfile->fonts/colors
     str << "<bgcolor id=\"default\" r=\"255\" g=\"255\" b=\"255\" />\n";
     str << "<font id=\"default\" name=\"ComicSansMSBold\" size=\"8\" colorr=\"0\" colorg=\"0\" colorb=\"0\" />\n";
 
@@ -244,16 +246,27 @@ void Comicfile::writeXML(std::ostream& str) const {
 }
 
 void Comicfile::writeJSON(std::ostream& str) const {
-    str << "{'comicfile':[\n";
-    str << " {'name':'" << imgfile << "',\n";
-    str << "  'lang':'de',\n";
-    str << "  'bgcolor':{'id':'default','r':255, 'g':255, 'b':255}\n";
-    str << "  'font':{'id':'default', 'name':'ComicSansMSBold', 'size':8, 'colorr':0, 'colorg':0, 'colorb':0}\n";
-    str << "  'bubbles':{\n";
-    for (const Bubble* b : bubbles) {
-        b->writeJSON( str );
+    // TODO: do this properly with comicfile->fonts/colors
+    str << "{\"comicfile\": {\n"
+        << "    \"name\":\"" << imgfile << "\",";
+    str << R"EOD(
+    "lang":"de",
+    "bgcolors": [
+        {"id":"default","r":255, "g":255, "b":255}
+    ],
+    "fonts": [
+        {"id":"default", "name":"ComicSansMSBold", "size":8, "colorr":0, "colorg":0, "colorb":0}
+    ],
+    "bubbles": [
+)EOD";
+    string delim = "";
+    for (const Bubble* bubble : bubbles) {
+        //if (&b != std::prev(bubbles.end())) str << delim;
+        str << delim;
+        bubble->writeJSON( str, 8);
+        delim = ",\n";
     }
-    str << "}]}\n";
+    str << "    ]}}\n";
 }
 
 void Comicfile::writeYAML(std::ostream& str) const {

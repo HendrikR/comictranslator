@@ -61,14 +61,14 @@ void BubbleRectangle::writeXML(std::ostream& str, uint16_t indent) const {
 }
 
 void BubbleRectangle::writeJSON(std::ostream& str, uint16_t indent) const {
-    str << utils::indent(indent) << "\"{rectangle\":{\n" << utils::indent(indent)
+    str << utils::indent(indent) << "{\"shape\":\"rectangle\","
 	<< "\"x0\": " << x0 << ", "
 	<< "\"y0\": " << y0 << ", "
 	<< "\"width\": " << width << ", "
 	<< "\"height\": " << height << ", "
 	<< "\"font\": \"default\", "
 	<< "\"bgcolor\": \"default\", "
-	<< "\"text\": \"" << text << "\"}},\n";
+	<< "\"text\": \"" << text << "\"}";
 }
 
 void BubbleRectangle::writeYAML(std::ostream& str, uint16_t indent) const {

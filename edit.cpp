@@ -31,6 +31,7 @@
 #include <FL/Fl_Input.H>
 #include <FL/fl_draw.H>
 #include <assert.h>
+#include <fstream>
 
 Fl_Window* mainWindow;
 Bubble* current;
@@ -48,7 +49,7 @@ public:
     uchar* img_original;              // unchanged image buffer
     uchar* img_display;              // displayed image buffer
     Comicfile* comic;
-    string filename_in;
+    string filename_in, filename_out;
     Fl_Input* text_bar;
     EditMode editmode = DM_HOVER;
     EditSubMode submode = DSM_RECT;
@@ -204,7 +205,7 @@ public:
                 //fl_pie(centerx-radiusx, centery-radiusy+30, 2*radiusx, 2*radiusy, 0, 360);
                 fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
             }
-            redraw();
+            //redraw();
             break;
         case DM_HOVER:
             current = bubbleAt(cx, cy);
@@ -274,20 +275,27 @@ void cb_save(Fl_Widget* widget, void* data) {
 
     Comicfile* comic = my_box->comic;
 
-    // Derive filename and format for output file
-    string filename_ext = my_box->filename_in.substr(my_box->filename_in.rfind('.')+1);
-    string filename_out = my_box->filename_in.substr(0, my_box->filename_in.rfind('.')+1) + comic->getLanguage() + "." + filename_ext;
-
     // todo: write to file instead of cout
-    std::cout << "write file to " << filename_out << std::endl;
-    //my_box->comic->writeXML(std::cout);
+    std::cout << "write file to " << my_box->filename_out << std::endl;
+    string ext = my_box->filename_out.substr(my_box->filename_out.rfind('.')+1);
+    std::ofstream file_out(my_box->filename_out);
+    if (!file_out.good()) {
+        std::cerr << "could not open file '" << my_box->filename_out << "' for writing" << std::endl;
+        exit(-1);
+    }
+    if      (ext ==  "xml") my_box->comic->writeXML(file_out);
+    else if (ext == "json") my_box->comic->writeJSON(file_out);
+    else {
+        std::cerr << "cannot save to unknown output file format: " << ext << std::endl;
+        exit(-1);
+    }
 }
 
 int main(int argc, char **argv) {
     Comicfile::addFontpath("./fonts");
     Comicfile* comic;
-    if (argc < 2) {
-	std::cerr<< "usage: "<< argv[0] <<" <XML/JSON file>\n";
+    if (argc < 2 || argc > 3) {
+	std::cerr<< "usage: "<< argv[0] <<" <XML/JSON file> [output file]\n";
 	exit(-1);
     }
     comic = parse_file(argv[1]);
@@ -298,6 +306,13 @@ int main(int argc, char **argv) {
     MyBox* box = new MyBox(0,30);
     box->setComic(comic);
     box->filename_in = argv[1];
+    if (argc == 3) {
+        box->filename_out = argv[2];
+    } else {
+        // Derive filename and format for output file
+        string filename_ext = box->filename_in.substr(box->filename_in.rfind('.')+1);
+        box->filename_out = box->filename_in.substr(0, box->filename_in.rfind('.')+1) + comic->getLanguage() + "." + filename_ext;
+    }
 
     mainWindow->end();
     mainWindow->show();
@@ -313,12 +328,6 @@ void Comicfile::draw() const {
 	std::cerr<< "Error loading image '"<< imgfile <<"', error code "<< err <<"\n";
 	exit(-1);
     }
-    imlib_context_set_image(image);
-
-    // Derive filename and format for output file
-    string filename_ext = imgfile.substr(imgfile.rfind('.')+1);
-    imlib_image_set_format(filename_ext.c_str());
-    string filename_out = imgfile.substr(0, imgfile.rfind('.')+1) + language + "." + filename_ext;
     imlib_context_set_image(image);
 
     // Draw all the bubbles
