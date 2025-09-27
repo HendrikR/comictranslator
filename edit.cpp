@@ -44,7 +44,7 @@ void cb_save(Fl_Widget* widget, void* data);
 
 class MyBox : public Fl_Box {
 public:
-    enum EditMode { DM_HOVER, DM_DRAW, DM_MOVE, DM_RESIZE };
+    enum EditMode { DM_HOVER, DM_DRAW, DM_MOVE, DM_RESIZE, DM_PICK };
     enum EditSubMode { DSM_RECT, DSM_CIRC };
     uchar* img_original;              // unchanged image buffer
     uchar* img_display;              // displayed image buffer
@@ -57,8 +57,9 @@ public:
 
     // FLTK DRAW METHOD
     void draw() {
-      load_image();
-      fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
+        comic->draw();
+        load_image();
+        fl_draw_image(img_display, x(), y(), w(), h(), 4, 0); // todo: sometimes segfaults
     }
 
     void load_image() {
@@ -128,8 +129,8 @@ public:
             if (current != nullptr && current != bubble) current->draw(); // redraw last selected bubble
             text_bar->value(bubble->getText().c_str());
             current = bubble;
-            bubble->draw(Bubble::OUTLINE);
             redraw();
+            bubble->draw(Bubble::OUTLINE);
             break;
         case DM_DRAW:
             break;
@@ -146,8 +147,8 @@ public:
             if (bubble != NULL) {
                 text_bar->value(bubble->getText().c_str());
                 current = bubble;
-                bubble->draw(Bubble::OUTLINE);
                 redraw();
+                bubble->draw(Bubble::OUTLINE);
             }
 	    break;
         case DM_DRAW: // create rectangle/ellipse
@@ -183,7 +184,6 @@ public:
             comic->add(current);
             current->setText("noi");
             current->draw(Bubble::ALL);
-            //redraw();
             break;
         }
         default:
@@ -197,22 +197,24 @@ public:
     int handle_drag(int event, int cx, int cy) {
         switch(editmode) {
         case DM_DRAW:
+            // todo this is not visible
             if (submode == DSM_RECT) {
                 fl_color(255, 0, 255);
                 fl_line_style(FL_DASH, 1, const_cast<char*>("\x04\x04"));
                 fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
             } else if (submode == DSM_CIRC) {
-                //fl_pie(centerx-radiusx, centery-radiusy+30, 2*radiusx, 2*radiusy, 0, 360);
-                fl_rect(oldx, oldy+30, abs(cx-oldx), abs(cy-oldy));
+                int centerx=(cx+oldx)/2, centery=(cy+oldy)/2;
+                int radiusx=abs(cx-oldx), radiusy=abs(cy-oldy);
+                fl_pie(centerx-radiusx, centery-radiusy+30, 2*radiusx, 2*radiusy, 0, 360);
             }
-            //redraw();
             break;
         case DM_HOVER:
-            current = bubbleAt(cx, cy);
+            if (!current) current = bubbleAt(cx, cy);
             if (current == nullptr) return 1;
             current->setPosition(cx, cy);
-            current->draw(Bubble::OUTLINE);
             redraw();
+            // todo not visible in draw
+            current->draw(Bubble::OUTLINE);
             break;
         }
         return 1;
@@ -259,6 +261,7 @@ void cb_delShape(Fl_Widget* widget, void* data) {
     assert( my_box != nullptr );
     my_box->comic->del( current );
     current = nullptr;
+    my_box->redraw();
     my_box->comic->draw();
 }
 
@@ -332,6 +335,9 @@ void Comicfile::draw() const {
 
     // Draw all the bubbles
     for (const auto& b : bubbles) {
-	b->draw();
+        b->draw(Bubble::ALL);
+        if (b == current) {
+            b->draw(Bubble::OUTLINE);
+        }
     }
 }
