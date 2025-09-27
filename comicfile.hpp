@@ -1,7 +1,6 @@
 #ifndef _COMICFILE_H_
 #define _COMICFILE_H_
 
-#include <Imlib2.h>
 #include <string>
 #include <vector>
 #include <map>

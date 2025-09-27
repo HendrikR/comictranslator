@@ -9,6 +9,8 @@ list(FILTER SOURCES EXCLUDE REGEX "(detect.cpp|draw.cpp|edit.cpp|gui_fltk.cpp)")
 
 # message(STATUS "    these are all the files: ${SOURCES}")
 
+set(CMAKE_AUTOMOC ON)
+find_package(Qt6 COMPONENTS REQUIRED Core Widgets)
 find_package(OpenCV REQUIRED core imgproc highgui )
 find_package(EXPAT REQUIRED)
 find_package(FLTK REQUIRED)
@@ -21,6 +23,7 @@ set(ALL_LIBRARIES
     ${Imlib2_LIBRARIES}
     ${FLTK_LIBRARIES}
     ${EXPAT_LIBRARIES}
+    Qt6::Core Qt6::Widgets
     m  # C math library
 )
 
@@ -29,6 +32,7 @@ set(ALL_INCLUDE_DIRS
     ${Imlib2_INCLUDE_DIRS}
     ${FLTK_INCLUDE_DIRS}
     ${EXPAT_INCLUDE_DIRS}
+    Qt6::Core Qt6::Widgets
 )
 
 # Debug output for OpenCV variables
@@ -48,3 +52,8 @@ ADD_EXECUTABLE( edit edit.cpp )
 TARGET_SOURCES( edit PRIVATE edit.cpp ${SOURCES} )
 TARGET_INCLUDE_DIRECTORIES( edit PRIVATE ${ALL_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES( edit PRIVATE ${ALL_LIBRARIES} )
+
+ADD_EXECUTABLE( qt_edit qt_edit.cpp )
+TARGET_SOURCES( qt_edit PRIVATE qt_edit.cpp qt_editWindow.cpp ${SOURCES} )
+TARGET_INCLUDE_DIRECTORIES( qt_edit PRIVATE ${ALL_INCLUDE_DIRS} )
+TARGET_LINK_LIBRARIES( qt_edit PRIVATE ${ALL_LIBRARIES} )
