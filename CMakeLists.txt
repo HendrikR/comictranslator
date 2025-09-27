@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 4.1)
 project (comictranslator)
+set(CMAKE_CXX_STANDARD 17) # needed for qt6
 
-add_compile_options(-g -std=c++11)
-
+set(SOURCES_COMMON bubble.cpp bubble_rectangle.cpp bubble_ellipse.cpp comicfile.cpp cfont.cpp color.cpp)
 file(GLOB SOURCES *.cpp)
 list(APPEND SOURCES "jute/jute.cpp")
 list(FILTER SOURCES EXCLUDE REGEX "(detect.cpp|draw.cpp|edit.cpp|gui_fltk.cpp)")
@@ -32,19 +32,19 @@ set(ALL_INCLUDE_DIRS
 )
 
 # Debug output for OpenCV variables
-message(STATUS "    these are all the libs: ${EXPAT_LIBRARIES}")
+message(STATUS "    these are all the libs: ${ALL_LIBRARIES}")
 
 ADD_EXECUTABLE( detect detect.cpp )
-TARGET_SOURCES( detect PRIVATE ${SOURCES} )
+TARGET_SOURCES( detect PRIVATE ${COMMON_SOURCES} detect.cpp )
 TARGET_INCLUDE_DIRECTORIES( detect PRIVATE ${ALL_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES( detect PRIVATE ${ALL_LIBRARIES} )
 
 ADD_EXECUTABLE( draw draw.cpp )
-TARGET_SOURCES( draw PRIVATE ${SOURCES} )
+TARGET_SOURCES( draw PRIVATE draw.cpp ${SOURCES_COMMON} )
 TARGET_INCLUDE_DIRECTORIES( draw PRIVATE ${ALL_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES( draw PRIVATE ${ALL_LIBRARIES} )
 
 ADD_EXECUTABLE( edit edit.cpp )
-TARGET_SOURCES( edit PRIVATE ${SOURCES} )
+TARGET_SOURCES( edit PRIVATE edit.cpp ${SOURCES} )
 TARGET_INCLUDE_DIRECTORIES( edit PRIVATE ${ALL_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES( edit PRIVATE ${ALL_LIBRARIES} )
