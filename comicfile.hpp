@@ -26,8 +26,11 @@ private:
     std::map<string, CFont*> fonts;
 public:
     std::vector<Bubble*> bubbles;
+
     Comicfile(string _filename, string _language)
 	: imgfile(_filename), language(_language) {}
+    ~Comicfile();
+
     string getFilename() { return imgfile; }
     string getLanguage() { return language; }
     Color*  add(string id, Color* c) {

@@ -20,6 +20,8 @@ public:
     Bubble(CFont* _font, Color* _bgcolor, string _text)
 	: text(_text), font(_font), bgcolor(_bgcolor)
 	{}
+    virtual ~Bubble() = default;
+
     virtual void writeImage() const = 0;
     virtual void writeXML(std::ostream& str, uint16_t indent = 0) const = 0;
     virtual void writeJSON(std::ostream& str, uint16_t indent = 0) const = 0;
