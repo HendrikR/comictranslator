@@ -14,6 +14,8 @@ find_package(Qt6 COMPONENTS REQUIRED Core Widgets)
 find_package(OpenCV REQUIRED core imgproc highgui )
 find_package(EXPAT REQUIRED)
 find_package(FLTK REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CAIRO REQUIRED cairo)
 # find_package(Imlib2 REQUIRED) # imlib2 does not provide cmake files, include it manually
 find_library(Imlib2_LIBRARIES NAMES Imlib2 PATHS /usr/local/lib /usr/lib)
 include_directories(/usr/local/include /usr/include)
@@ -23,6 +25,7 @@ set(ALL_LIBRARIES
     ${Imlib2_LIBRARIES}
     ${FLTK_LIBRARIES}
     ${EXPAT_LIBRARIES}
+    ${CAIRO_LIBRARIES}
     Qt6::Core Qt6::Widgets
     m  # C math library
 )
@@ -32,6 +35,7 @@ set(ALL_INCLUDE_DIRS
     ${Imlib2_INCLUDE_DIRS}
     ${FLTK_INCLUDE_DIRS}
     ${EXPAT_INCLUDE_DIRS}
+    ${CAIRO_INCLUDE_DIRS}
     Qt6::Core Qt6::Widgets
 )
 
