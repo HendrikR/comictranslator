@@ -10,23 +10,23 @@ const uint32_t BUFSIZE=0x10000;
 Comicfile* comic;
 Bubble* current_bubble;
 
-int xarg_i(std::map<string, string> &args, const string& name, int _default=0) {
-    return args.find(name) != args.end() ? atoi(args[name].c_str()) : _default;
+int xarg_i(const std::map<string, string> &args, const string& name, int _default=0) {
+    return args.find(name) != args.end() ? atoi(args.at(name).c_str()) : _default;
 }
-float xarg_f(std::map<string, string> &args, const string& name, float _default=0.0) {
-    return args.find(name) != args.end() ? atof(args[name].c_str()) : _default;
+float xarg_f(const std::map<string, string> &args, const string& name, float _default=0.0) {
+    return args.find(name) != args.end() ? atof(args.at(name).c_str()) : _default;
 }
-string xarg_s(std::map<string, string> &args, const string& name, string _default="") {
-    return args.find(name) != args.end() ? args[name] : _default;
+string xarg_s(const std::map<string, string> &args, const string& name, string _default="") {
+    return args.find(name) != args.end() ? args.at(name) : _default;
 }
 
-int jarg_i(jute::jValue obj, string name, int _default=0) {
+int jarg_i(jute::jValue obj, const string& name, int _default=0) {
     return obj[name].get_type() != jute::JUNKNOWN ? obj[name].as_int() : _default;
 }
-int jarg_d(jute::jValue obj, string name, double _default=0.0) {
+int jarg_d(jute::jValue obj, const string& name, double _default=0.0) {
     return obj[name].get_type() != jute::JUNKNOWN ? obj[name].as_double() : _default;
 }
-string jarg_s(jute::jValue obj, string name, string _default="") {
+string jarg_s(jute::jValue obj, const string& name, string _default="") {
     return obj[name].get_type() != jute::JUNKNOWN ? obj[name].as_string() : _default;
 }
 
@@ -291,6 +291,6 @@ void Comicfile::writeYAML(std::ostream& str) const {
     }
 }
 
-void Comicfile::addFontpath(string path) {
+void Comicfile::addFontpath(const string& path) {
     CFont::addFontpath(path);
 }

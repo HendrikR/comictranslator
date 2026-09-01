@@ -35,8 +35,8 @@ public:
         for (auto& [_, f] : fonts) delete f;
     }
 
-    string getFilename() { return imgfile; }
-    string getLanguage() { return language; }
+    const string& getFilename() { return imgfile; }
+    const string& getLanguage() { return language; }
     Color*  add(string id, Color* c) {
 	colors[id] = c;
 	return c;
@@ -67,13 +67,13 @@ public:
     void writeJSON(std::ostream& str) const;
     void writeYAML(std::ostream& str) const;
     void draw() const;
-    static void addFontpath(string path = "./fonts");
+    static void addFontpath(const string& path = "./fonts");
 };
 
 
 Comicfile* parse_file(const string& filename);
-int    arg_i(std::map<string, string> &args, string name, int    _default=0);
-float  arg_f(std::map<string, string> &args, string name, float  _default=0.0);
-string arg_s(std::map<string, string> &args, string name, string _default="");
+int    arg_i(const std::map<string, string>& args, const string& name, int    _default=0);
+float  arg_f(const std::map<string, string>& args, const string& name, float  _default=0.0);
+string arg_s(const std::map<string, string>& args, const string& name, string _default="");
 
 #endif
