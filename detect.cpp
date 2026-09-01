@@ -23,7 +23,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <algorithm>
+#include <opencv2/geometry/2d.hpp>
 #include <iostream>
 #include <iomanip>
 #include <stdint.h>
@@ -64,24 +64,23 @@ bool isMonotonous(vector<int> hullIdx) {
     return true;
 }
 
-void checkEllipse(cv::Mat dst, vector<Point> contour, vector<RotatedRect> &bubbles, float tolerance, int min_size, int max_size) {
+void checkEllipse(cv::Mat dst, vector<Point> contour, vector<cv::RotatedRect> &bubbles, float tolerance, int min_size, int max_size) {
     // calculate the area of the original contour and its convex hull.
     vector<Point> hull;
     vector<int> hullIdx;
     vector<Vec4i> hullError;
-    convexHull(contour, hull);
-    convexHull(contour, hullIdx);
+    cv::convexHull(contour, hullIdx);
     // convexityDefects cannot work with non-monotonous hulls -- skip them.
     if (! isMonotonous(hullIdx)) return;
     cv::convexityDefects(contour, hullIdx, hullError);
-    double contour_area = fabs(contourArea(contour));
-    double hull_area = fabs(contourArea(hull));
+    double contour_area = fabs(cv::contourArea(contour));
+    double hull_area = fabs(cv::contourArea(hull));
     if (hull_area < min_size*min_size) return;
     // check if the contour is roughly convex (i.e. a potential ellipse).
     if (fabs(contour_area - hull_area) < contour_area*tolerance) {
         // okay, it's covex enough, we are stupid and pretend it's an ellipse, then.
         if (contour.size() >= 5) {
-            RotatedRect ebox = fitEllipse(contour);
+            cv::RotatedRect ebox = fitEllipse(contour);
             // We're only interested in Axis-parallel Ellipses.
             // This rejects ellipsis-like objects which are no speech bubbles.
             if (fabs(ebox.angle-90) < 5 || fabs(ebox.angle-270) < 5) {
