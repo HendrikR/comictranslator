@@ -147,6 +147,8 @@ public:
             if (bubble != NULL) {
                 text_bar->value(bubble->getText().c_str());
                 current = bubble;
+                oldx = cx; oldy = cy;
+                editmode = DM_MOVE;
                 redraw();
                 bubble->draw(Bubble::OUTLINE);
             }
@@ -164,8 +166,7 @@ public:
     int handle_release(int event, int cx, int cy) {
         switch(editmode) {
         case DM_HOVER:
-            assert(current != nullptr);
-            current->draw(Bubble::ALL);
+            if (current != nullptr) current->draw(Bubble::ALL);
             return 1;
         case DM_MOVE:
             assert(current != nullptr);
