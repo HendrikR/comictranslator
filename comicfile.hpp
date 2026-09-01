@@ -29,7 +29,11 @@ public:
 
     Comicfile(string _filename, string _language)
 	: imgfile(_filename), language(_language) {}
-    ~Comicfile();
+    ~Comicfile() {
+        for (auto& b : bubbles) delete b;
+        for (auto& [_, c] : colors) delete c;
+        for (auto& [_, f] : fonts) delete f;
+    }
 
     string getFilename() { return imgfile; }
     string getLanguage() { return language; }
