@@ -10,6 +10,8 @@ public:
     BubbleEllipse(int _centerx, int _centery, int _radiusx, int _radiusy,
 		  CFont *_font, Color *_bgcolor);
     virtual ~BubbleEllipse() = default;
+    BubbleEllipse(const BubbleEllipse&) = default;
+    BubbleEllipse& operator=(const BubbleEllipse&) = default;
 
     virtual void writeImage() const override;
     virtual void writeXML(std::ostream& str, uint16_t indent = 0) const override;

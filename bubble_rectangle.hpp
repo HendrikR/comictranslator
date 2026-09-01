@@ -10,6 +10,8 @@ public:
     BubbleRectangle(int _x0, int _y0, int _width, int _height,
 		    CFont *_font, Color *_bgcolor);
     virtual ~BubbleRectangle() = default;
+    BubbleRectangle(const BubbleRectangle&) = default;
+    BubbleRectangle& operator=(const BubbleRectangle&) = default;
 
     virtual void writeImage() const override;
     virtual void writeXML(std::ostream& str, uint16_t indent = 0) const override;

@@ -22,6 +22,12 @@ public:
 	{}
     virtual ~Bubble() = default;
 
+    // Abstract class -- disable copy, enable move
+    Bubble(const Bubble&) = delete;
+    Bubble& operator=(const Bubble&) = delete;
+    Bubble(Bubble&&) = default;
+    Bubble& operator=(Bubble&&) = default;
+
     virtual void writeImage() const = 0;
     virtual void writeXML(std::ostream& str, uint16_t indent = 0) const = 0;
     virtual void writeJSON(std::ostream& str, uint16_t indent = 0) const = 0;
