@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 4.1)
 project (comictranslator)
 set(CMAKE_CXX_STANDARD 17) # needed for qt6
+# add_compile_options(-g)
 
-set(SOURCES_COMMON bubble.cpp bubble_rectangle.cpp bubble_ellipse.cpp comicfile.cpp cfont.cpp color.cpp)
+set(SOURCES_COMMON bubble.cpp bubble_rectangle.cpp bubble_ellipse.cpp comicfile.cpp cfont.cpp color.cpp utils.cpp)
 file(GLOB SOURCES *.cpp)
 list(APPEND SOURCES "jute/jute.cpp")
 list(FILTER SOURCES EXCLUDE REGEX "(detect.cpp|draw.cpp|edit.cpp|gui_fltk.cpp)")
