@@ -5,6 +5,6 @@
 *.jpeg
 *.ttf
 *.xml
-detect
-draw
-edit
+*.json
+*.yaml
+build
